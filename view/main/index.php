@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+        <title>Hotel & Restaurant HR Management</title>
+        <link rel="stylesheet" href="/assets/css/output.css">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </head>
+
+    <body>
+        <!-- Mobile Menu Toggle Button -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+
+
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+        <div class="flex min-h-screen">
+            <!-- Sidebar Tabs - MODIFIED: Added all new modules -->
+            <div class="w-72 bg-white shadow-lg p-4 sidebar-fixed" id="mainSidebar">
+                <div class="flex items-center mb-6">
+                    <span class="title-accent"></span>
+                    <h1 class="text-xl font-semibold text-gray-800">Hotel & Restaurant HR</h1>
+                </div>
+
+                <!-- Close button for mobile -->
+                <button class="absolute top-4 right-4 text-gray-500 md:hidden" onclick="closeMobileSidebar()">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+
+                <!-- navigations -->
+                <div class="space-y-1" id="sideTabs">
+                    <!-- RECRUITMENT & TALENT Section -->
+                    <div class="sidebar-category">RECRUITMENT & TALENT</div>
+                    <div class="side-tab active" data-tab="recruitment">
+                        <i class="fas fa-bullhorn"></i>
+                        Recruitment Management
+                    </div>
+                    <div class="side-tab" data-tab="applicant">
+                        <i class="fas fa-users"></i>
+                        Applicant Management
+                    </div>
+                    <div class="side-tab" data-tab="onboarding">
+                        <i class="fas fa-rocket"></i>
+                        New Hire Onboarding
+                    </div>
+
+                    <!-- PERFORMANCE & DEVELOPMENT Section -->
+                    <div class="sidebar-category">PERFORMANCE & DEVELOPMENT</div>
+                    <div class="side-tab" data-tab="performance">
+                        <i class="fas fa-chart-line"></i>
+                        Performance Management
+                    </div>
+                    <div class="side-tab" data-tab="competency">
+                        <i class="fas fa-clipboard-check"></i>
+                        Competency Management
+                    </div>
+                    <div class="side-tab" data-tab="learning">
+                        <i class="fas fa-graduation-cap"></i>
+                        Learning Management
+                    </div>
+                    <div class="side-tab" data-tab="training">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        Training Management
+                    </div>
+                    <div class="side-tab" data-tab="succession">
+                        <i class="fas fa-sitemap"></i>
+                        Succession Planning
+                    </div>
+
+                    <!-- EMPLOYEE SERVICES Section -->
+                    <div class="sidebar-category">EMPLOYEE SERVICES</div>
+                    <div class="side-tab" data-tab="hmo">
+                        <i class="fas fa-notes-medical"></i>
+                        HMO & Benefits Administration
+                    </div>
+                    <div class="side-tab" data-tab="claims">
+                        <i class="fas fa-file-invoice"></i>
+                        Claims and Reimbursement
+                    </div>
+
+                    <!-- TIME & ATTENDANCE Section -->
+                    <div class="sidebar-category">TIME & ATTENDANCE</div>
+                    <div class="side-tab" data-tab="time">
+                        <i class="fas fa-clock"></i>
+                        Time and Attendance System
+                    </div>
+                    <div class="side-tab" data-tab="shift">
+                        <i class="fas fa-calendar-alt"></i>
+                        Shift and Schedule Management
+                    </div>
+                    <div class="side-tab" data-tab="timesheet">
+                        <i class="fas fa-table"></i>
+                        Timesheet Management
+                    </div>
+                    <div class="side-tab" data-tab="leave">
+                        <i class="fas fa-umbrella-beach"></i>
+                        Leave Management
+                    </div>
+
+                    <!-- CORE HR Section -->
+                    <div class="sidebar-category">CORE HR</div>
+                    <div class="side-tab" data-tab="hcm">
+                        <i class="fas fa-database"></i>
+                        Core Human Capital Management
+                    </div>
+                    <div class="side-tab" data-tab="payroll">
+                        <i class="fas fa-calculator"></i>
+                        Payroll Management
+                    </div>
+                    <div class="side-tab" data-tab="compensation">
+                        <i class="fas fa-coins"></i>
+                        Compensation Planning
+                    </div>
+                    <div class="side-tab" data-tab="analytics">
+                        <i class="fas fa-chart-pie"></i>
+                        HR Analytics Dashboard
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area  -->
+            <div class="flex-1 p-8 main-content-offset" id="mainContent">
+                <!--  RECRUITMENT MANAGEMENT  -->
+                <?php require base_path('view/main/sections/recruitment.php'); ?>
+
+                <!--  APPLICANT MANAGEMENT  -->
+                <?php require base_path('view/main/sections/applicant.php'); ?>
+
+                <!--  NEW HIRE ONBOARDING  -->
+                <?php require base_path('view/main/sections/onboarding.php'); ?>
+
+                <!--  PERFORMANCE MANAGEMENT  -->
+                <?php require base_path('view/main/sections/performance.php'); ?>
+
+                <!--  COMPETENCY MANAGEMENT  -->
+                <?php require base_path('view/main/sections/competency.php'); ?>
+
+                <!--  LEARNING MANAGEMENT  -->
+                <?php require base_path('view/main/sections/learning.php'); ?>
+
+                <!--  TRAINING MANAGEMENT  -->
+                <?php require base_path('view/main/sections/training.php'); ?>
+
+                <!--  SUCCESSION PLANNING  -->
+                <?php require base_path('view/main/sections/successionPlanning.php'); ?>
+
+                <!--  TIME AND ATTENDANCE  -->
+                <?php require base_path('view/main/sections/attendance.php'); ?>
+
+                <!--  SHIFT AND SCHEDULE MANAGEMENT  -->
+                <?php require base_path('view/main/sections/schedule.php'); ?>
+
+                <!--  TIMESHEET MANAGEMENT  -->
+                <?php require base_path('view/main/sections/timesheet.php'); ?>
+
+                <!--  LEAVE MANAGEMENT  -->
+                <?php require base_path('view/main/sections/leave.php'); ?>
+
+                <!--  CLAIMS AND REIMBURSEMENT  -->
+                <?php require base_path('view/main/sections/claims.php'); ?>
+
+                <!--  CORE HUMAN CAPITAL MANAGEMENT  -->
+                <?php require base_path('view/main/sections/coreHuman.php'); ?>
+
+                <!--  PAYROLL MANAGEMENT  -->
+                <?php require base_path('view/main/sections/payroll.php'); ?>
+
+                <!--  COMPENSATION PLANNING  -->
+                <?php require base_path('view/main/sections/compensation.php'); ?>
+
+                <!--  HR ANALYTICS DASHBOARD  -->
+                <?php require base_path('view/main/sections/analytics.php'); ?>
+
+                <!--  HMO & BENEFITS ADMINISTRATION  -->
+                <?php require base_path('view/main/sections/benefits.php'); ?>
+            </div>
+        </div>
+
+        <!-- All Modals remain the same as before -->
+        <?php require base_path('view/main/modals/newJob.php'); ?>
+
+
+        <!-- Edit Job Modal  -->
+        <?php require base_path('view/main/modals/editJob.php'); ?>
+
+
+        <!-- Applicant Modal   -->
+        <?php require base_path('view/main/modals/applicant.php'); ?>
+
+
+        <!-- Resume Modal  -->
+        <?php require base_path('view/main/modals/resume.php'); ?>
+
+
+        <!-- Add New Hire Modal -->
+        <?php require base_path('view/main/modals/newHire.php'); ?>
+
+
+        <!-- Add Task Modal -->
+        <?php require base_path('view/main/modals/addTask.php'); ?>
+
+
+        <!-- Onboarding Detail Modal  - Grace Lee -->
+        <?php require base_path('view/main/modals/onboardingDetail.php'); ?>
+
+
+        <!-- New Review Modal -->
+        <?php require base_path('view/main/modals/newReview.php'); ?>
+
+        <!-- Update Progress Modal  -->
+        <?php require base_path('view/main/modals/updateProgress.php'); ?>
+
+        <!-- Competency Modal  -->
+        <?php require base_path('view/main/modals/newCompetency.php'); ?>
+
+        <!-- Learning Modal  -->
+        <?php require base_path('view/main/modals/newCourse.php'); ?>
+
+        <!-- New Training Modal -->
+        <?php require base_path('view/main/modals/training.php'); ?>
+
+        <!-- Manual Time Modal -->
+        <?php require base_path('view/main/modals/manualTime.php'); ?>
+
+        <!-- Create Schedule Modal -->
+        <?php require base_path('view/main/modals/createSchedule.php'); ?>
+
+        <!-- New Claim Modal -->
+        <?php require base_path('view/main/modals/claim.php'); ?>
+
+        <!-- Add Employee Modal -->
+        <?php require base_path('view/main/modals/addEmployee.php'); ?>
+
+        <!-- Salary Review Modal -->
+        <?php require base_path('view/main/modals/salaryReview.php'); ?>
+
+        <!-- Enroll Benefit Modal -->
+        <?php require base_path('view/main/modals/enrollBenefit.php'); ?>
+
+        <script src="/assets/js/main.js"></script>
+
+    </body>
+
+</html>
