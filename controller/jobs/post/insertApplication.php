@@ -1,11 +1,10 @@
 <?php
-session_start();
+
 
 use Core\Database;
 
 $config = require base_path('config/config.php');
 $db = new Database($config['database']);
-
 
 $fullName = trim($_POST['full_name'] ?? '');
 $email = trim($_POST['email'] ?? '');
@@ -15,27 +14,26 @@ $experience = trim($_POST['experience'] ?? '');
 $education = trim($_POST['education'] ?? '');
 $skills = trim($_POST['skills'] ?? '');
 $coverNote = trim($_POST['cover_note'] ?? '');
-$resumePath = null;
+$resumePath = trim($_POST['resume_url'] ?? null);
 
 $errors = [];
 
-if (empty($fullName)) {
+if (empty($fullName))
     $errors[] = "Full name is required.";
-}
-
-if (empty($email)) {
+if (empty($email))
     $errors[] = "Email is required.";
-} elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+elseif (!filter_var($email, FILTER_VALIDATE_EMAIL))
     $errors[] = "Invalid email format.";
-}
-
-if (!empty($phone) && !preg_match('/^[0-9\-\+\(\) ]+$/', $phone)) {
+if (!empty($phone) && !preg_match('/^[0-9\-\+\(\) ]+$/', $phone))
     $errors[] = "Phone number format is invalid.";
-}
-
-if (empty($position)) {
+if (empty($position))
     $errors[] = "Position is required.";
-}
+if (empty($experience))
+    $errors[] = "Experience is required.";
+if (empty($education))
+    $errors[] = "Education / Certifications are required.";
+if (empty($skills))
+    $errors[] = "Skills are required.";
 
 if (!empty($errors)) {
     $_SESSION['error'] = $errors;
@@ -43,19 +41,26 @@ if (!empty($errors)) {
     exit;
 }
 
-try {
-    $existing = $db->query("SELECT COUNT(*) AS count FROM applicants WHERE email = ?", [$email])->fetch_one();
-    if ($existing && $existing['count'] > 0) {
-        $_SESSION['error'] = ["An application with this email already exists."];
-        header('Location: /jobPosting#applySection');
-        exit;
-    }
 
+$existing = $db->query("SELECT COUNT(*) AS count FROM applicants WHERE email = ?", [$email])->fetch_one();
+if ($existing && $existing['count'] > 0) {
+    $_SESSION['error'] = ["An application with this email already exists."];
+    header('Location: /jobPosting#applySection');
+    exit;
+}
+
+$department = 'Management';
+$job = $db->query("SELECT department FROM job_postings WHERE position = ?", [$position])->fetch_one();
+if ($job && !empty($job['department'])) {
+    $department = $job['department'];
+}
+
+try {
     $db->query("
         INSERT INTO applicants 
-        (full_name, email, phone, position, experience, education, skills, resume_path, cover_note) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ", [$fullName, $email, $phone, $position, $experience, $education, $skills, $resumePath, $coverNote]);
+        (full_name, email, phone, position, department, experience, education, skills, resume_path, cover_note)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ", [$fullName, $email, $phone, $position, $department, $experience, $education, $skills, $resumePath, $coverNote]);
 
     $_SESSION['success'] = ["Application submitted successfully!"];
     header('Location: /jobPosting#applySection');
