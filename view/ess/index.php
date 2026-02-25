@@ -163,43 +163,70 @@
                         <!-- Requests Panel -->
                         <div id="requestsPanel" class="tab-panel block">
                             <div class="space-y-3">
-                                <div class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md">
-                                    <div class="flex items-center gap-3">
+                                <!-- Request 1 -->
+                                <div
+                                    class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md group hover:bg-[#e8eef5] transition">
+                                    <div class="flex items-center gap-3 flex-1">
                                         <span
                                             class="bg-[#dbeafe] text-primary-hover text-xs font-medium px-2.5 py-1 rounded-md">annual</span>
-                                        <div>
+                                        <div class="flex-1">
                                             <p class="text-sm font-medium">Vacation · May 10–15</p>
                                             <p class="text-xs text-gray-400">submitted 2d ago</p>
                                         </div>
                                     </div>
-                                    <span
-                                        class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                                        <button
+                                            class="opacity-0 group-hover:opacity-100 transition bg-red-600 hover:bg-red-700 text-white p-2 rounded-md text-xs"
+                                            title="Remove request">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md">
-                                    <div class="flex items-center gap-3">
+                                <!-- Request 2 -->
+                                <div
+                                    class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md group hover:bg-[#e8eef5] transition">
+                                    <div class="flex items-center gap-3 flex-1">
                                         <span
                                             class="bg-[#f0e7fc] text-[#5940a0] text-xs font-medium px-2.5 py-1 rounded-md">sick</span>
-                                        <div>
+                                        <div class="flex-1">
                                             <p class="text-sm font-medium">Apr 22 (1 day)</p>
                                             <p class="text-xs text-gray-400">approved</p>
                                         </div>
                                     </div>
-                                    <span
-                                        class="text-green-700 bg-green-50 px-3 py-1 text-xs font-medium rounded-md">approved</span>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-green-700 bg-green-50 px-3 py-1 text-xs font-medium rounded-md">approved</span>
+                                        <button
+                                            class="opacity-0 group-hover:opacity-100 transition bg-red-600 hover:bg-red-700 text-white p-2 rounded-md text-xs"
+                                            title="Remove request">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md">
-                                    <div class="flex items-center gap-3">
+                                <!-- Request 3 -->
+                                <div
+                                    class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md group hover:bg-[#e8eef5] transition">
+                                    <div class="flex items-center gap-3 flex-1">
                                         <span
                                             class="bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-1 rounded-md">remote</span>
-                                        <div>
+                                        <div class="flex-1">
                                             <p class="text-sm font-medium">WFH May 2 & 3</p>
                                             <p class="text-xs text-gray-400">pending review</p>
                                         </div>
                                     </div>
-                                    <span
-                                        class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                                        <button
+                                            class="opacity-0 group-hover:opacity-100 transition bg-red-600 hover:bg-red-700 text-white p-2 rounded-md text-xs"
+                                            title="Remove request">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <button id="viewAllRequestsBtn"
@@ -223,8 +250,14 @@
                                             <p class="text-xs text-gray-400">due May 1 · high</p>
                                         </div>
                                     </div>
-                                    <span
-                                        class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                                        <button
+                                            class="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition">
+                                            Done
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Task 2 -->
@@ -239,8 +272,15 @@
                                             <p class="text-xs text-gray-400">due May 10 · medium</p>
                                         </div>
                                     </div>
-                                    <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">in
-                                        progress</span>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">in
+                                            progress</span>
+                                        <button
+                                            class="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition">
+                                            Done
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Task 3 -->
@@ -255,8 +295,15 @@
                                             <p class="text-xs text-gray-400">due May 5 · mandatory</p>
                                         </div>
                                     </div>
-                                    <span
-                                        class="text-green-700 bg-green-50 px-3 py-1 text-xs font-medium rounded-md">completed</span>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-green-700 bg-green-50 px-3 py-1 text-xs font-medium rounded-md">completed</span>
+                                        <button
+                                            class="bg-gray-400 text-white px-3 py-1 rounded-md text-xs cursor-not-allowed"
+                                            disabled>
+                                            Done
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Task 4 -->
@@ -271,8 +318,14 @@
                                             <p class="text-xs text-gray-400">due Apr 30 · low</p>
                                         </div>
                                     </div>
-                                    <span
-                                        class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                                        <button
+                                            class="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition">
+                                            Done
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <button id="viewAllTasksBtn"

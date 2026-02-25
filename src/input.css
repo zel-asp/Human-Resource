@@ -603,6 +603,7 @@ body {
 }
 
 .filter-chip {
+    position: relative; 
     padding: 6px 14px;
     border-radius: var(--radius-pill);
     font-size: 0.8rem;
@@ -613,8 +614,19 @@ body {
     transition: all 0.2s;
 }
 
+/* Hover & active background */
 .filter-chip:hover,
 .filter-chip.active {
     background: var(--color-primary);
     color: white;
+}
+
+.filter-chip.active::after {
+    content: "";
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 0;
+    background: var(--color-primary);
+    border-radius: 2px;
 }
