@@ -5,8 +5,8 @@ use Core\Database;
 $config = require base_path('config/config.php');
 $db = new Database($config['database']);
 
-$success = [];
-$error = [];
+$_SESSION['success'] ??= [];
+$_SESSION['error'] ??= [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
