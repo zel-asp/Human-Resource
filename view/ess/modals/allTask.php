@@ -22,7 +22,12 @@
                         <p class="text-xs text-gray-400">due May 1 · high</p>
                     </div>
                 </div>
-                <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                    <button class="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition">
+                        Done
+                    </button>
+                </div>
             </div>
 
             <div class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md">
@@ -35,8 +40,12 @@
                         <p class="text-xs text-gray-400">due May 10 · medium</p>
                     </div>
                 </div>
-                <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">in
-                    progress</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">in progress</span>
+                    <button class="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition">
+                        Done
+                    </button>
+                </div>
             </div>
 
             <div class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md">
@@ -49,7 +58,12 @@
                         <p class="text-xs text-gray-400">due May 5 · mandatory</p>
                     </div>
                 </div>
-                <span class="text-green-700 bg-green-50 px-3 py-1 text-xs font-medium rounded-md">completed</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-green-700 bg-green-50 px-3 py-1 text-xs font-medium rounded-md">completed</span>
+                    <button class="bg-gray-400 text-white px-3 py-1 rounded-md text-xs cursor-not-allowed" disabled>
+                        Done
+                    </button>
+                </div>
             </div>
 
             <div class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md">
@@ -62,7 +76,12 @@
                         <p class="text-xs text-gray-400">due Apr 30 · low</p>
                     </div>
                 </div>
-                <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                    <button class="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition">
+                        Done
+                    </button>
+                </div>
             </div>
 
             <div class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md">
@@ -75,7 +94,12 @@
                         <p class="text-xs text-gray-400">due May 15 · medium</p>
                     </div>
                 </div>
-                <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">pending</span>
+                    <button class="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition">
+                        Done
+                    </button>
+                </div>
             </div>
 
             <div class="flex items-center justify-between p-3 bg-[#f2f5f9] rounded-md">
@@ -88,8 +112,12 @@
                         <p class="text-xs text-gray-400">due May 20 · high</p>
                     </div>
                 </div>
-                <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">in
-                    progress</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-amber-700 bg-amber-50 px-3 py-1 text-xs font-medium rounded-md">in progress</span>
+                    <button class="bg-green-600 text-white px-3 py-1 rounded-md text-xs hover:bg-green-700 transition">
+                        Done
+                    </button>
+                </div>
             </div>
         </div>
         <div class="mt-6 flex justify-end">

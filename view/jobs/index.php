@@ -101,31 +101,38 @@
                     <?php unset($_SESSION['error']); ?>
                 <?php endif; ?>
 
-                <form method="POST" action="/submitApplication" class="space-y-5">
+                <form method="POST" action="/submitApplication" class="space-y-5" id="applicationForm">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Full Name -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Full name <span
                                     class="text-red-400">*</span></label>
                             <input type="text" name="full_name" placeholder="Jamie Smith" required
                                 class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom">
                         </div>
+
+                        <!-- Email -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Email <span
                                     class="text-red-400">*</span></label>
                             <input type="email" name="email" placeholder="you@example.com" required
                                 class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom">
                         </div>
+
+                        <!-- Phone -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Phone <span
                                     class="text-red-400">*</span></label>
-                            <input type="tel" name="phone" placeholder="(555) 123-4567"
-                                class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom"
-                                required>
+                            <input type="tel" name="phone" placeholder="(555) 123-4567" required
+                                class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom">
                         </div>
+
+                        <!-- Position -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Desired position</label>
                             <select name="position"
-                                class="w-full bg-input-alt border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom">
+                                class="w-full bg-input-alt border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom"
+                                required>
                                 <?php if (!empty($jobPostings)): ?>
                                     <?php foreach ($jobPostings as $job): ?>
                                         <option value="<?= htmlspecialchars($job['position']) ?>">
@@ -137,55 +144,61 @@
                                 <?php endif; ?>
                             </select>
                         </div>
+
+                        <!-- Experience -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Experience <span
                                     class="text-gray-400 text-xs">(years / summary)</span><span
                                     class="text-red-400">*</span></label>
                             <input type="text" name="experience" placeholder="e.g. 3 years in full-service restaurant"
-                                class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom"
-                                required>
+                                required
+                                class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom">
                         </div>
+
+                        <!-- Education -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Education /
-                                Certifications <span class="text-red-400">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Education / Certifications <span
+                                    class="text-red-400">*</span></label>
                             <input type="text" name="education" placeholder="e.g. Culinary arts diploma, high school"
-                                class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom"
-                                required>
+                                required
+                                class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom">
                         </div>
                     </div>
 
+                    <!-- Skills -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Skills <span
                                 class="text-red-400">*</span></label>
                         <textarea name="skills" rows="2" placeholder="e.g. POS systems, multilingual, food safety, ..."
-                            class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom resize-none"
-                            required></textarea>
+                            required
+                            class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom resize-none"></textarea>
                     </div>
 
+                    <!-- Resume -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Resume / CV (PDF or image) <span
                                 class="text-gray-400 text-xs">optional</span></label>
                         <div class="flex items-center gap-2">
                             <input type="file" name="resume" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                 class="block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-input-alt file:text-gray-700 hover:file:bg-gray-200 border border-input rounded-md cursor-pointer bg-input">
+                            <input type="hidden" name="resume_url" id="resume_url">
                         </div>
                         <p class="text-xs text-gray-400 mt-1">max 5MB (static demo, no upload)</p>
                     </div>
 
+                    <!-- Cover Note -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cover note (optional)</label>
                         <textarea name="cover_note" rows="2" placeholder="Anything else you'd like us to know..."
                             class="w-full bg-input border border-input rounded-md px-4 py-2.5 text-sm focus-ring-custom resize-none"></textarea>
                     </div>
 
+                    <!-- Submit -->
                     <?php if (!empty($jobPostings)): ?>
-                        <form method="POST" action="/submitApplication" class="space-y-5">
-                            <!-- form fields here (as before) -->
-                            <button type="submit"
-                                class="w-full bg-primary hover:bg-primary-hover text-white font-medium py-3 rounded-md text-sm shadow-sm transition flex items-center justify-center gap-2">
-                                <i class="fas fa-paper-plane"></i> Submit application
-                            </button>
-                        </form>
+                        <button type="submit"
+                            class="w-full bg-primary hover:bg-primary-hover text-white font-medium py-3 rounded-md text-sm shadow-sm transition flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane"></i> Submit application
+                        </button>
                     <?php else: ?>
                         <div class="p-5 bg-yellow-100 text-yellow-800 rounded-md text-center">
                             <i class="fas fa-exclamation-triangle mr-2"></i>
@@ -196,5 +209,7 @@
             </div>
         </div>
     </body>
+
+    <script src="/assets/js/resumeUpload.js" type="module"></script>
 
 </html>
