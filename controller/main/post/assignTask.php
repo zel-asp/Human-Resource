@@ -39,7 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($_SESSION['error'])) {
             try {
-                // Insert new task as a separate row
+                // start transaction to ensure both updates succeed together
+                $db->beginTransaction();
+
+                // insert new task
                 $db->query("
                     INSERT INTO tasks (assigned_to, task_type, task_description, due_date, priority, assigned_staff)
                     VALUES (:assigned_to, :task_type, :task_description, :due_date, :priority, :assigned_staff)
@@ -52,15 +55,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':assigned_staff' => $assigned_staff
                 ]);
 
-                $_SESSION['success'][] = 'Task assigned successfully!';
+                // update employee onboarding status to 'In Progress'
+                $db->query("
+                    UPDATE employees 
+                    SET onboarding_status = 'In Progress' 
+                    WHERE id = :employee_id
+                ", [
+                    ':employee_id' => $assigned_to
+                ]);
+
+                // commit transaction if both queries succeeded
+                $db->commit();
+
+                $_SESSION['success'][] = 'Task assigned successfully! Onboarding status updated to In Progress.';
 
             } catch (PDOException $e) {
+                // rollback if anything failed
+                $db->rollBack();
                 $_SESSION['error'][] = 'Database error: ' . $e->getMessage();
             }
         }
     }
 
-    // Redirect back
+    // redirect back
     header('Location: /main?tab=learning');
     exit;
 }

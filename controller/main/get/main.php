@@ -36,24 +36,22 @@ try {
 }
 
 try {
-    $hiredApplicants = $db->query(
-        "SELECT id, full_name, position, hired_date, start_date 
-        FROM applicants 
-        WHERE status = 'Hired' 
-        ORDER BY created_at DESC"
+    $hiredEmployees = $db->query(
+        "SELECT id, employee_number, full_name, position, department, hired_date, start_date
+        FROM employees
+        ORDER BY hired_date DESC"
     )->find();
 } catch (\Throwable $th) {
-    $hiredApplicants = [];
+    $hiredEmployees = [];
     error_log($th->getMessage());
 }
 
 // Get tasks with applicant details
 try {
     $tasks = $db->query(
-        "SELECT t.*, a.full_name, a.position, a.start_date, a.hired_date 
+        "SELECT t.*, e.full_name, e.position, e.start_date, e.hired_date 
         FROM tasks t 
-        JOIN applicants a ON t.assigned_to = a.id 
-        WHERE a.status = 'Hired' 
+        JOIN employees e ON t.assigned_to = e.id
         ORDER BY 
             CASE 
                 WHEN t.due_date < CURDATE() AND t.status != 'Completed' THEN 1
@@ -68,35 +66,53 @@ try {
     error_log($th->getMessage());
 }
 
+// Onboarding Pagination
+$obPage = isset($_GET['ob_page']) ? max(1, (int) $_GET['ob_page']) : 1;
+$obPerPage = 5;
+$obOffset = ($obPage - 1) * $obPerPage;
+
+// Total onboarding employees
+try {
+    $totalOnboardingCount = $db->query(
+        "SELECT COUNT(*) as count FROM employees"
+    )->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $totalOnboardingCount = 0;
+}
+
+// Paginated onboarding data
 try {
     $onboardingTasks = $db->query(
         "SELECT 
-            a.id AS applicant_id,
-            a.full_name,
-            a.position,
-            a.department,
-            a.hired_date,
-            a.start_date,
-            'Active' as status,
+            e.id AS employee_id,
+            e.employee_number,
+            e.full_name,
+            e.position,
+            e.department,
+            e.hired_date,
+            e.start_date,
+            e.onboarding_status,
             COUNT(t.id) AS total_tasks,
             SUM(CASE WHEN t.status = 'Completed' THEN 1 ELSE 0 END) AS completed_tasks
-        FROM applicants a
-        LEFT JOIN tasks t ON a.id = t.assigned_to
-        WHERE a.status = 'Hired'
-        GROUP BY a.id
-        ORDER BY a.start_date DESC"
+        FROM employees e
+        LEFT JOIN tasks t ON e.id = t.assigned_to
+        GROUP BY e.id
+        ORDER BY e.hired_date DESC
+        LIMIT $obPerPage OFFSET $obOffset"
     )->find();
 } catch (\Throwable $th) {
     $onboardingTasks = [];
-    error_log($th->getMessage());
 }
+
+$totalOnboardingPages = ceil($totalOnboardingCount / $obPerPage);
+
 // Get tasks with status for each applicant
 try {
     $applicantTasks = $db->query(
         "SELECT 
             t.*,
-            a.full_name,
-            a.position,
+            e.full_name,
+            e.position,
             DATEDIFF(t.due_date, CURDATE()) as days_difference,
             CASE 
                 WHEN t.status = 'Completed' THEN 'completed'
@@ -111,8 +127,7 @@ try {
                 ELSE 4
             END as urgency
         FROM tasks t
-        JOIN applicants a ON t.assigned_to = a.id
-        WHERE a.status = 'Hired'
+        JOIN employees e ON t.assigned_to = e.id
         ORDER BY urgency ASC, t.due_date ASC"
     )->find();
 } catch (\Throwable $th) {
@@ -123,32 +138,16 @@ try {
 // Get unique departments for onboarding filter
 try {
     $departments = $db->query(
-        "SELECT DISTINCT COALESCE(a.department, jp.department, '') as department
-        FROM applicants a
-        LEFT JOIN job_postings jp ON a.position = jp.position
-        WHERE a.status = 'Hired'
-        AND COALESCE(a.department, jp.department, '') != ''
-        UNION
-        SELECT 'Kitchen'
-        UNION
-        SELECT 'Service'
-        UNION
-        SELECT 'Management'
-        UNION
-        SELECT 'HR'
+        "SELECT DISTINCT department
+        FROM employees
+        WHERE department IS NOT NULL
+        AND department != ''
         ORDER BY department"
     )->find();
 } catch (\Throwable $th) {
-    // Fallback departments if query fails
-    $departments = [
-        ['department' => 'Kitchen'],
-        ['department' => 'Service'],
-        ['department' => 'Management'],
-        ['department' => 'HR']
-    ];
+    $departments = [];
     error_log($th->getMessage());
 }
-
 
 try {
     $staffMembers = $db->query(
@@ -175,9 +174,9 @@ try {
 // Fetch hired applicants (probationary employees) for the dropdown and table
 try {
     $probationaryEmployees = $db->query(
-        "SELECT e.id, e.full_name, e.email, e.position, e.hired_date, e.start_date 
+        "SELECT e.id, e.full_name, e.email, e.position, e.hired_date, e.start_date, e.status 
     FROM employees e
-    WHERE e.status = 'Probationary' 
+    WHERE e.evaluation_status = 'Pending' 
     ORDER BY e.hired_date DESC"
     )->find();
 } catch (\Throwable $th) {
@@ -329,9 +328,11 @@ view_path('main', 'index', [
     'jobPostings' => $jobPostings,
     'applicants' => $allApplicants,
     'recentApplicants' => $recentApplicants,
-    'hiredApplicants' => $hiredApplicants,
+    'hiredEmployees' => $hiredEmployees,
     'tasks' => $tasks,
     'onboardingTasks' => $onboardingTasks,
+    'obPage' => $obPage,
+    'totalOnboardingPages' => $totalOnboardingPages,
     'applicantTasks' => $applicantTasks,
     'staffMembers' => $staffMembers,
     'departments' => $departments,
