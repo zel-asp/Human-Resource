@@ -208,6 +208,9 @@
         <!-- Update Progress Modal  -->
         <?php require base_path('view/main/modals/updateProgress.php'); ?>
 
+        <!-- Update Progress Modal  -->
+        <?php require base_path('view/main/modals/newReview.php'); ?>
+
         <!-- Competency Modal  -->
         <?php require base_path('view/main/modals/newCompetency.php'); ?>
 

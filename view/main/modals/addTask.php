@@ -1,13 +1,13 @@
 <!-- Add Task Modals -->
-<?php if (!empty($hiredApplicants)): ?>
-    <?php foreach ($hiredApplicants as $applicant): ?>
-        <div id="addTaskModal<?= $applicant['id'] ?>" class="modal">
+<?php if (!empty($hiredEmployees)): ?>
+    <?php foreach ($hiredEmployees as $employee): ?>
+        <div id="addTaskModal<?= $employee['id'] ?>" class="modal">
             <div class="modal-content">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold">Add Task for
-                        <?= htmlspecialchars($applicant['full_name']) ?>
+                        <?= htmlspecialchars($employee['full_name']) ?>
                     </h3>
-                    <button onclick="closeModal('addTaskModal<?= $applicant['id'] ?>')"
+                    <button onclick="closeModal('addTaskModal<?= $employee['id'] ?>')"
                         class="text-gray-500 hover:text-gray-700">
                         <i class="fas fa-times text-xl"></i>
                     </button>
@@ -15,8 +15,8 @@
 
                 <form action="/assignTask" method="POST" class="space-y-4">
                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
-                    <input type="hidden" name="assigned_to" value="<?= $applicant['id'] ?>">
-                    <input type="hidden" name="applicant_name" value="<?= htmlspecialchars($applicant['full_name']) ?>">
+                    <input type="hidden" name="assigned_to" value="<?= $employee['id'] ?>">
+                    <input type="hidden" name="employee_name" value="<?= htmlspecialchars($employee['full_name']) ?>">
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Task Type</label>
@@ -96,7 +96,7 @@
                     </div>
 
                     <div class="flex justify-end gap-3 mt-6">
-                        <button type="button" onclick="closeModal('addTaskModal<?= $applicant['id'] ?>')"
+                        <button type="button" onclick="closeModal('addTaskModal<?= $employee['id'] ?>')"
                             class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                             Cancel
                         </button>
