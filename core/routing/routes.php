@@ -21,3 +21,6 @@ $router->post('/assignTask', 'controller/main/post/assignTask.php');
 $router->post('/generate-employee-account', 'controller/main/post/generate_account.php');
 
 $router->post('/save-performance-evaluation', 'controller/main/post/performanceEvaluation.php');
+
+$router->post('/make-regular-employee', 'controller/main/post/make-regular-employee.php');
+$router->post('/create-performance-improvement-plan', 'controller/main/post/pip.php');
