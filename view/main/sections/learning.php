@@ -52,7 +52,7 @@
 
                             // Get tasks for this specific applicant
                             $applicantSpecificTasks = array_filter($applicantTasks, function ($task) use ($hire) {
-                                return $task['assigned_to'] == $hire['applicant_id'];
+                                return $task['assigned_to'] == $hire['employee_id'];
                             });
 
                             // Calculate weeks
@@ -64,7 +64,7 @@
                             <!-- Onboarding for <?= htmlspecialchars($hire['full_name']) ?> -->
                             <div class="onboarding-card p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
                                 data-department="<?= htmlspecialchars($hire['department'] ?? '') ?>"
-                                data-applicant-id="<?= $hire['applicant_id'] ?>">
+                                data-applicant-id="<?= $hire['employee_id'] ?>">
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex items-center gap-3">
                                         <div
@@ -109,7 +109,7 @@
                                 <div class="mt-4 pt-3 border-t border-gray-100">
                                     <div class="flex items-center justify-between mb-2">
                                         <h5 class="text-sm font-semibold text-gray-700">Assigned Tasks</h5>
-                                        <button onclick="openModal('addTaskModal<?= $hire['applicant_id'] ?>')"
+                                        <button onclick="openModal('addTaskModal<?= $hire['employee_id'] ?>')"
                                             class="text-xs text-primary hover:underline">
                                             <i class="fas fa-plus mr-1"></i>Add Task
                                         </button>
@@ -249,6 +249,30 @@
                             No active onboarding processes found
                         </div>
                     <?php endif; ?>
+                    <?php if ($totalOnboardingPages > 1): ?>
+                        <div class="flex justify-center items-center gap-2 mt-6">
+                            <?php if ($obPage > 1): ?>
+                                <a href="?tab=learning&ob_page=<?= $obPage - 1 ?>"
+                                    class="px-3 py-1 border rounded hover:bg-gray-100">
+                                    Previous
+                                </a>
+                            <?php endif; ?>
+
+                            <?php for ($i = 1; $i <= $totalOnboardingPages; $i++): ?>
+                                <a href="?tab=learning&ob_page=<?= $i ?>"
+                                    class="px-3 py-1 border rounded <?= $i == $obPage ? 'bg-primary text-white' : 'hover:bg-gray-100' ?>">
+                                    <?= $i ?>
+                                </a>
+                            <?php endfor; ?>
+
+                            <?php if ($obPage < $totalOnboardingPages): ?>
+                                <a href="?tab=learning&ob_page=<?= $obPage + 1 ?>"
+                                    class="px-3 py-1 border rounded hover:bg-gray-100">
+                                    Next
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -268,11 +292,11 @@
                             <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
                                 name="assigned_to" required>
                                 <option value="">Select new hire</option>
-                                <?php if (!empty($hiredApplicants)): ?>
-                                    <?php foreach ($hiredApplicants as $applicant): ?>
-                                        <option value="<?= $applicant['id'] ?>">
-                                            <?= htmlspecialchars($applicant['full_name']) ?> -
-                                            <?= htmlspecialchars($applicant['position']) ?>
+                                <?php if (!empty($hiredEmployees)): ?>
+                                    <?php foreach ($hiredEmployees as $employee): ?>
+                                        <option value="<?= $employee['id'] ?>">
+                                            <?= htmlspecialchars($employee['full_name']) ?> -
+                                            <?= htmlspecialchars($employee['position']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 <?php endif; ?>
