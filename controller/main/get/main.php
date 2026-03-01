@@ -5,6 +5,7 @@ use Core\Database;
 $config = require base_path('config/config.php');
 $db = new Database($config['database']);
 
+
 try {
     $jobPostings = $db->query(
         "SELECT id, position, department, location, shift, salary, created_at 
@@ -187,7 +188,7 @@ try {
 // Fetch hired applicants WITHOUT existing employee account
 try {
     $availableEmployees = $db->query(
-        "SELECT a.id, a.full_name, a.email, a.position, a.hired_date, a.start_date
+        "SELECT a.id, a.full_name, a.email, a.position, a.hired_date, a.start_date, a.department
         FROM applicants a
         WHERE a.status = 'Hired'
         AND NOT EXISTS (
@@ -204,7 +205,7 @@ try {
 
 // Pagination for Generated Accounts
 $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
-$perPage = 10;
+$perPage = 5;
 $offset = ($page - 1) * $perPage;
 
 // Total accounts
@@ -276,7 +277,7 @@ try {
 }
 
 $nhPage = isset($_GET['nh_page']) ? max(1, (int) $_GET['nh_page']) : 1;
-$nhPerPage = 5;
+$nhPerPage = 10;
 $nhOffset = ($nhPage - 1) * $nhPerPage;
 
 // Total new hires
@@ -289,40 +290,115 @@ try {
 // Paginated new hires
 try {
     $paginatedNewHires = $db->query(
-        "SELECT id, full_name, position, hired_date, start_date, onboarding_status, department
+        "SELECT id,employee_number, full_name, position, hired_date, start_date, onboarding_status, department
         FROM employees ORDER BY hired_date DESC LIMIT $nhPerPage OFFSET $nhOffset"
     )->find();
 } catch (\Throwable $th) {
     $paginatedNewHires = [];
 }
 
+
+// Total pages
+$totalNewHirePages = ceil($totalNewHires / $nhPerPage);
+
 // Fetch recent evaluations with employee details
 try {
-    $recentEvaluations = $db->query(
-        "SELECT 
-            pe.id as evaluation_id,
-            pe.overall_score,
-            pe.interpretation,
-            pe.review_period_end,
-            pe.created_at,
-            e.id as employee_id,
-            e.full_name,
-            e.position,
-            e.hired_date,
-            e.start_date,
-            DATEDIFF(pe.review_period_end, CURDATE()) as days_since_review
-        FROM performance_evaluations pe
-        JOIN employees e ON pe.employee_id = e.id
-        ORDER BY pe.created_at DESC
-        LIMIT 10"
-    )->find();
+    $recentEvaluations = $db->query("
+    SELECT 
+        pe.id as evaluation_id,
+        pe.overall_score,
+        pe.interpretation,
+        pe.review_period_end,
+        pe.created_at,
+        e.id as employee_id,
+        e.full_name,
+        e.position,
+        e.hired_date,
+        e.start_date,
+        e.status,
+        pip.id as pip_id,
+        pip.improvement_areas,
+        pip.goal1,
+        pip.goal2,
+        pip.goal3,
+        pip.pip_start_date,
+        pip.pip_end_date,
+        -- Get criteria scores
+        MAX(CASE WHEN pcs.criteria_number = 1 THEN pcs.score END) as criteria_1_score,
+        MAX(CASE WHEN pcs.criteria_number = 2 THEN pcs.score END) as criteria_2_score,
+        MAX(CASE WHEN pcs.criteria_number = 3 THEN pcs.score END) as criteria_3_score,
+        MAX(CASE WHEN pcs.criteria_number = 4 THEN pcs.score END) as criteria_4_score,
+        MAX(CASE WHEN pcs.criteria_number = 5 THEN pcs.score END) as criteria_5_score,
+        -- Determine if improvement needed based on overall score
+        CASE 
+            WHEN pe.overall_score < 3.0 THEN 'Improvement'
+            ELSE 'Meet'
+        END as improvement_status
+    FROM performance_evaluations pe
+    JOIN employees e ON pe.employee_id = e.id
+    LEFT JOIN performance_improvement_plans pip 
+        ON pip.evaluation_id = pe.id
+    LEFT JOIN performance_criteria_scores pcs 
+        ON pcs.evaluation_id = pe.id
+    GROUP BY pe.id
+    ORDER BY pe.created_at DESC
+    LIMIT 10
+")->find();
 } catch (\Throwable $th) {
     $recentEvaluations = [];
     error_log($th->getMessage());
 }
 
-// Total pages
-$totalNewHirePages = ceil($totalNewHires / $nhPerPage);
+$pendingCount = $db->query("
+    SELECT COUNT(*) AS count
+    FROM employees
+    WHERE evaluation_status = 'Pending'
+")->fetch_one();
+
+// Get ready for regular count (employees with good evaluations)
+$needImprovement = $db->query("
+    SELECT COUNT(*) AS count
+    FROM performance_evaluations
+    WHERE overall_score < 3.5
+")->fetch_one();
+
+$highScoreCount = $db->query("
+    SELECT COUNT(*) AS count
+    FROM performance_evaluations
+    WHERE overall_score > 3.5
+")->fetch_one();
+
+// Get active PIP count
+$activePipCount = $db->query("
+    SELECT COUNT(*) AS count
+    FROM performance_improvement_plans
+")->fetch_one();
+
+
+
+// hr4:
+try {
+    $employeesForBenefits = $db->query(
+        "SELECT id, full_name, employee_number, position, department, status
+        FROM employees 
+        WHERE status = 'Active' OR status = 'Onboarding' OR status = 'Probationary'
+        ORDER BY full_name ASC"
+    )->find(); // Use findAll() to get all records
+} catch (\Throwable $th) {
+    $employeesForBenefits = [];
+    error_log("Error fetching employees for benefits: " . $th->getMessage());
+}
+
+try {
+    $benefitProviders = $db->query(
+        "SELECT id, provider_name, contact_info
+        FROM benefit_providers 
+        ORDER BY provider_name ASC"
+    )->find();
+} catch (\Throwable $th) {
+    $benefitProviders = [];
+    error_log("Error fetching benefit providers: " . $th->getMessage());
+}
 
 view_path('main', 'index', [
     'jobPostings' => $jobPostings,
@@ -344,11 +420,20 @@ view_path('main', 'index', [
     'nhPage' => $nhPage,
     'totalNewHirePages' => $totalNewHirePages,
     'recentEvaluations' => $recentEvaluations,
+    'pendingCount' => $pendingCount,
+    'needImprovement' => $needImprovement,
+    'activePipCount' => $activePipCount,
+    'highScoreCount' => $highScoreCount,
     'stats' => [
         'totalAccounts' => $totalAccounts['count'] ?? 0,
         'totalHired' => $totalHired['count'] ?? 0,
         'onboarded' => $totalOnboarded['count'] ?? 0,
         'inProgress' => $totalInProgress['count'] ?? 0,
         'pending' => $totalPending['count'] ?? 0,
-    ]
+    ],
+
+
+    //hr4:
+    'employeesForBenefits' => $employeesForBenefits,
+    'benefitProviders' => $benefitProviders
 ]);

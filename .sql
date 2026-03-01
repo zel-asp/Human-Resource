@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Feb 26, 2026 at 08:25 AM
+-- Generation Time: Feb 28, 2026 at 08:32 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -50,12 +50,33 @@ CREATE TABLE `applicants` (
 --
 
 INSERT INTO `applicants` (`id`, `full_name`, `email`, `phone`, `position`, `department`, `experience`, `education`, `skills`, `status`, `hired_date`, `start_date`, `resume_path`, `cover_note`, `created_at`) VALUES
-(31, 'hello admin', 'admin1@gmail.com', '09123456789', 'Restaurant Server', 'Restaurant', 'fsd', 'xcv', 'ad', 'Hired', '2026-02-26', NULL, '', '', '2026-02-25 09:08:18'),
-(32, 'hello admin', 'a1ss@gmail.com', '09123456789', 'R', 'Management', 'g', 'g', 's', 'Hired', '2026-02-26', NULL, '', '', '2026-02-25 09:24:59'),
-(33, 'Uzumaki Dela CRUZ', 'B0s5ls.Do1s@gmail.com', '09565819961', 'Restaurant Server', 'Management', 'g', 's', 'ad', 'Hired', '2026-02-26', NULL, '', '', '2026-02-25 16:53:38'),
-(34, 'Uzumaki Dela CRUZ', 'B0s5lsdfds.Do1s@gmail.com', '09565819961', 'Restaurant Server', 'Management', 'g', 'dsfs', 'fbcf', 'Hired', '2026-02-26', NULL, 'https://plxoonwsguadkqisevxh.supabase.co/storage/v1/object/public/resumes/1772080619447-cn5dr2uqczd.pdf', 'fg', '2026-02-26 04:37:00'),
-(35, 'Uzumaki Dela CRUZ', 'Bsds0s5ls.Do1s@gmail.com', '09565819961', 'Restaurant Server', 'Management', 'fsd', 'dsfs', 'sd', 'Hired', '2026-02-26', NULL, '', '', '2026-02-26 05:07:56'),
-(36, 'Uzumaki Dela CRUZ', 'B0s5lsdsdsda.Do1s@gmail.com', '09565819961', 'Restaurant Server', 'Management', 'fsd', 'dsfs', 'sadasd', 'New', NULL, NULL, '', '', '2026-02-26 05:08:08');
+(38, 'Uzumaki Dela CRUZ', 'Bdsd0s5ls.Do1s@gmail.com', '09123456789', 'Restaurant Server', 'Management', 'xcv', 'dsfs', 'nothing', 'Review', NULL, NULL, '', '', '2026-02-28 05:27:19'),
+(39, 'Uzumaki Dela CRUZ', 'B0s5ls.Do1s@gmail.com', '09565819961', 'Restaurant Server', 'Management', 's', 'xcv', 'd', 'Hired', '2026-02-28', '2026-03-06', '', '', '2026-02-28 07:01:41');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `benefit_providers`
+--
+
+CREATE TABLE `benefit_providers` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `provider_name` varchar(100) NOT NULL,
+  `contact_info` varchar(255) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `benefit_providers`
+--
+
+INSERT INTO `benefit_providers` (`id`, `provider_name`, `contact_info`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 'Maxicare', 'info@maxicare.com.ph', 'HMO provider', '2026-02-26 13:18:09', '2026-02-26 13:18:09'),
+(2, 'Medicard', 'support@medicard.com.ph', 'HMO provider', '2026-02-26 13:18:09', '2026-02-26 13:18:09'),
+(3, 'Intellicare', 'contact@intellicare.com.ph', 'HMO provider', '2026-02-26 13:18:09', '2026-02-26 13:18:09'),
+(4, 'AXA', 'service@axa.com.ph', 'Insurance provider', '2026-02-26 13:18:09', '2026-02-26 13:18:09');
 
 -- --------------------------------------------------------
 
@@ -86,11 +107,7 @@ CREATE TABLE `employees` (
 --
 
 INSERT INTO `employees` (`id`, `applicant_id`, `employee_number`, `full_name`, `email`, `phone`, `position`, `department`, `start_date`, `hired_date`, `onboarding_status`, `status`, `created_at`, `updated_at`, `evaluation_status`) VALUES
-(9, 33, 'EMP-033', 'Uzumaki Dela CRUZ', 'B0s5ls.Do1s@gmail.com', '09565819961', 'Restaurant Server', 'Management', NULL, '2026-02-25', 'In Progress', 'Probationary', '2026-02-26 01:26:14', '2026-02-26 15:24:24', 'Pending'),
-(11, 31, 'EMP-031', 'hello admin', 'admin1@gmail.com', '09123456789', 'Restaurant Server', 'Restaurant', NULL, '2026-02-25', 'Onboarding', 'Probationary', '2026-02-26 01:26:28', '2026-02-26 15:24:58', 'Pending'),
-(12, 32, 'EMP-032', 'hello admin', 'a1ss@gmail.com', '09123456789', 'R', 'Management', NULL, '2026-02-25', 'Onboarding', 'Probationary', '2026-02-26 02:53:49', '2026-02-26 15:24:32', 'Pending'),
-(14, 35, 'EMP-035', 'Uzumaki Dela CRUZ', 'Bsds0s5ls.Do1s@gmail.com', '09565819961', 'Restaurant Server', 'Management', NULL, '2026-02-26', 'In Progress', 'Regular', '2026-02-26 13:25:07', '2026-02-26 15:25:14', 'Evaluated'),
-(15, 34, 'EMP-034', 'Uzumaki Dela CRUZ', 'B0s5lsdfds.Do1s@gmail.com', '09565819961', 'Restaurant Server', 'Management', NULL, '2026-02-26', 'Onboarding', 'Probationary', '2026-02-26 13:25:09', '2026-02-26 15:25:27', 'Evaluated');
+(35, 39, 'EMP-039', 'Uzumaki Dela CRUZ', 'B0s5ls.Do1s@gmail.com', '09565819961', 'Restaurant Server', 'Management', '2026-03-06', '2026-02-28', 'Onboarding', 'Probationary', '2026-02-28 15:13:26', '2026-02-28 15:13:26', 'Pending');
 
 -- --------------------------------------------------------
 
@@ -108,17 +125,36 @@ CREATE TABLE `employee_accounts` (
   `account_status` enum('Active','Inactive','Suspended') NOT NULL DEFAULT 'Active',
   `generated_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `last_login` timestamp NULL DEFAULT NULL,
-  `department` varchar(255) DEFAULT NULL
+  `department` varchar(255) DEFAULT NULL,
+  `session_token` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `employee_accounts`
 --
 
-INSERT INTO `employee_accounts` (`id`, `applicant_id`, `employee_id`, `username`, `password`, `email`, `account_status`, `generated_date`, `last_login`, `department`) VALUES
-(10, 31, 'EMP-2026-503', 'admin1', '$2y$10$SH4/vutk9ik6E9IjW3K6rOo60QYdxLSVq38mp9qn59/o/5Pl80hDW', 'admin1@gmail.com', 'Active', '2026-02-26 04:45:31', NULL, NULL),
-(11, 32, 'EMP-2026-812', 'a1ss', '$2y$10$iyHZRQlWmTx2lkJ2oCuBoewEZrufPO4nhx.YtmQMYuTNXyiNYhZEm', 'a1ss@gmail.com', 'Active', '2026-02-26 04:58:16', NULL, NULL),
-(12, 33, 'EMP-2026-336', 'B0s5ls.Do1s', '$2y$10$YDJnjvJDBkWsw5cAoFwKrusbhStrWibtQVWmCctSpBNcQZ9XDsnnC', 'B0s5ls.Do1s@gmail.com', 'Active', '2026-02-26 05:05:17', NULL, NULL);
+INSERT INTO `employee_accounts` (`id`, `applicant_id`, `employee_id`, `username`, `password`, `email`, `account_status`, `generated_date`, `last_login`, `department`, `session_token`) VALUES
+(31, 38, 'EMP-038', 'Bdsd0s5ls.Do1s', '$2y$10$MB4gJ05tUYEirikUx6gLaubsttL2eaS550gUZmWSOXWaLh1ALW08C', 'Bdsd0s5ls.Do1s@gmail.com', 'Active', '2026-02-28 05:27:54', '2026-02-28 07:30:16', 'Management', '2c0d56bab3978b5cc6ade35c8410bb64001777a46301dea4e956047ad592a3d1');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `employee_benefits`
+--
+
+CREATE TABLE `employee_benefits` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `employee_id` int(11) NOT NULL,
+  `benefit_type` varchar(100) NOT NULL,
+  `provider_id` int(10) UNSIGNED NOT NULL,
+  `effective_date` date NOT NULL,
+  `expiry_date` date DEFAULT NULL,
+  `coverage_amount` decimal(15,2) DEFAULT NULL,
+  `monthly_premium` decimal(10,2) DEFAULT NULL,
+  `dependents` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -160,22 +196,6 @@ CREATE TABLE `performance_criteria_scores` (
   `comments` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `performance_criteria_scores`
---
-
-INSERT INTO `performance_criteria_scores` (`id`, `evaluation_id`, `criteria_number`, `criteria_label`, `criteria_description`, `score`, `comments`) VALUES
-(56, 17, 1, 'Job Knowledge', 'Understanding of role, procedures, and standards', 3, ''),
-(57, 17, 2, 'Quality of Work', 'Accuracy, thoroughness, and attention to detail', 5, ''),
-(58, 17, 3, 'Customer Service', 'Interaction with customers and handling complaints', 3, ''),
-(59, 17, 4, 'Teamwork & Collaboration', 'Working with colleagues and supporting team goals', 4, ''),
-(60, 17, 5, 'Attendance & Punctuality', 'Reliability and adherence to schedule', 5, ''),
-(61, 18, 1, 'Job Knowledge', 'Understanding of role, procedures, and standards', 3, ''),
-(62, 18, 2, 'Quality of Work', 'Accuracy, thoroughness, and attention to detail', 3, ''),
-(63, 18, 3, 'Customer Service', 'Interaction with customers and handling complaints', 3, ''),
-(64, 18, 4, 'Teamwork & Collaboration', 'Working with colleagues and supporting team goals', 3, ''),
-(65, 18, 5, 'Attendance & Punctuality', 'Reliability and adherence to schedule', 3, '');
-
 -- --------------------------------------------------------
 
 --
@@ -193,14 +213,6 @@ CREATE TABLE `performance_evaluations` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `performance_evaluations`
---
-
-INSERT INTO `performance_evaluations` (`id`, `employee_id`, `review_period_start`, `review_period_end`, `review_type`, `overall_score`, `interpretation`, `created_at`, `updated_at`) VALUES
-(17, 14, '0000-00-00', '2026-05-27', '90-Day Probationary Review', 4.0, 'Exceeds Expectations', '2026-02-26 07:25:12', '2026-02-26 07:25:12'),
-(18, 15, '0000-00-00', '2026-05-27', '90-Day Probationary Review', 3.0, 'Meets Expectations', '2026-02-26 07:25:27', '2026-02-26 07:25:27');
 
 -- --------------------------------------------------------
 
@@ -221,13 +233,6 @@ CREATE TABLE `performance_improvement_plans` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `performance_improvement_plans`
---
-
-INSERT INTO `performance_improvement_plans` (`id`, `employee_id`, `evaluation_id`, `improvement_areas`, `goal1`, `goal2`, `goal3`, `pip_start_date`, `pip_end_date`, `created_at`) VALUES
-(1, 15, 18, 'dfsd', 'sdfsd', 'sdfsd', 'sfsd', '2026-02-26', '2026-03-28', '2026-02-26 07:25:34');
-
 -- --------------------------------------------------------
 
 --
@@ -243,13 +248,6 @@ CREATE TABLE `regular_employment` (
   `manager_comments` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `regular_employment`
---
-
-INSERT INTO `regular_employment` (`id`, `employee_id`, `evaluation_id`, `effective_date`, `employment_type`, `manager_comments`, `created_at`) VALUES
-(2, 14, 17, '2026-02-26', 'Regular Full-Time', 'Uzumaki Dela CRUZ has demonstrated excellent performance during probationary period.', '2026-02-26 07:25:14');
 
 -- --------------------------------------------------------
 
@@ -282,6 +280,13 @@ ALTER TABLE `applicants`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indexes for table `benefit_providers`
+--
+ALTER TABLE `benefit_providers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `provider_name` (`provider_name`);
+
+--
 -- Indexes for table `employees`
 --
 ALTER TABLE `employees`
@@ -300,6 +305,14 @@ ALTER TABLE `employee_accounts`
   ADD KEY `idx_applicant_id` (`applicant_id`),
   ADD KEY `idx_employee_id` (`employee_id`),
   ADD KEY `idx_username` (`username`);
+
+--
+-- Indexes for table `employee_benefits`
+--
+ALTER TABLE `employee_benefits`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `employee_id` (`employee_id`),
+  ADD KEY `provider_id` (`provider_id`);
 
 --
 -- Indexes for table `job_postings`
@@ -353,19 +366,31 @@ ALTER TABLE `tasks`
 -- AUTO_INCREMENT for table `applicants`
 --
 ALTER TABLE `applicants`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+
+--
+-- AUTO_INCREMENT for table `benefit_providers`
+--
+ALTER TABLE `benefit_providers`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `employee_accounts`
 --
 ALTER TABLE `employee_accounts`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+
+--
+-- AUTO_INCREMENT for table `employee_benefits`
+--
+ALTER TABLE `employee_benefits`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `job_postings`
@@ -377,31 +402,31 @@ ALTER TABLE `job_postings`
 -- AUTO_INCREMENT for table `performance_criteria_scores`
 --
 ALTER TABLE `performance_criteria_scores`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=181;
 
 --
 -- AUTO_INCREMENT for table `performance_evaluations`
 --
 ALTER TABLE `performance_evaluations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `performance_improvement_plans`
 --
 ALTER TABLE `performance_improvement_plans`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `regular_employment`
 --
 ALTER TABLE `regular_employment`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- Constraints for dumped tables
@@ -418,6 +443,13 @@ ALTER TABLE `employees`
 --
 ALTER TABLE `employee_accounts`
   ADD CONSTRAINT `employee_accounts_ibfk_1` FOREIGN KEY (`applicant_id`) REFERENCES `applicants` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `employee_benefits`
+--
+ALTER TABLE `employee_benefits`
+  ADD CONSTRAINT `employee_benefits_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `employee_benefits_ibfk_2` FOREIGN KEY (`provider_id`) REFERENCES `benefit_providers` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `performance_criteria_scores`
