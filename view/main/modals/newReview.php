@@ -135,7 +135,12 @@
 <!-- Regular Employment Confirmation Modals -->
 <?php if (!empty($recentEvaluations)): ?>
     <?php foreach ($recentEvaluations as $eval): ?>
-        <!-- Regular Modal for <?= htmlspecialchars($eval['full_name']) ?> -->
+
+        <?php
+        $hasExistingPip = !empty($eval['pip_id']);
+        $employeeNeedImprovement = ($eval['status'] === 'Improvement');
+        ?>
+
         <div id="regularModal_<?= $eval['employee_id'] ?>" class="modal">
             <div
                 class="modal-content bg-white rounded-[--radius-card] shadow-[--shadow-card] w-full max-w-lg mx-4 p-6 relative">
@@ -195,7 +200,6 @@
             </div>
         </div>
 
-        <!-- PIP Modal for <?= htmlspecialchars($eval['full_name']) ?> -->
         <div id="pipModal_<?= $eval['employee_id'] ?>" class="modal">
             <div
                 class="modal-content bg-white rounded-[--radius-card] shadow-[--shadow-card] w-full max-w-lg mx-4 p-6 relative">
@@ -204,17 +208,29 @@
                     &times;
                 </button>
 
-                <h3 class="text-xl font-semibold mb-4" style="color: var(--color-primary)">Performance Improvement Plan</h3>
+                <h3 class="text-xl font-semibold mb-4" style="color: var(--color-primary)">
+                    <?= $hasExistingPip ? 'Update Performance Improvement Plan' : 'Performance Improvement Plan' ?>
+                </h3>
 
-                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-                    <p class="text-sm text-yellow-700">Performance evaluation indicates need for improvement. Create PIP for
-                        employee.</p>
+                <div
+                    class="<?= $hasExistingPip ? 'bg-blue-50 border-blue-400' : 'bg-yellow-50 border-yellow-400' ?> border-l-4 p-4 mb-6">
+                    <p class="text-sm <?= $hasExistingPip ? 'text-blue-700' : 'text-yellow-700' ?>">
+                        <?php if ($hasExistingPip): ?>
+                            Existing PIP found. Update the improvement plan for this employee.
+                        <?php else: ?>
+                            Performance evaluation indicates need for improvement. Create PIP for employee.
+                        <?php endif; ?>
+                    </p>
                 </div>
 
-                <form method="POST" action="/create-performance-improvement-plan" class="space-y-4">
+                <form method="POST"
+                    action="<?= $employeeNeedImprovement ? '/update-performance-improvement-plan' : '/create-performance-improvement-plan' ?>"
+                    class="space-y-4">
                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                     <input type="hidden" name="employee_id" value="<?= $eval['employee_id'] ?>">
                     <input type="hidden" name="evaluation_id" value="<?= $eval['evaluation_id'] ?>">
+                    <?= $employeeNeedImprovement ? '<input type="hidden" value="PATCH" name="__method">' : '' ?>
+                    <input type="hidden" name="pip_id" value="<?= $eval['pip_id'] ?>">
 
                     <div>
                         <label class="block text-sm font-medium mb-1">Employee</label>
@@ -222,41 +238,102 @@
                             value="<?= htmlspecialchars($eval['full_name']) ?>" readonly>
                     </div>
 
+                    <!-- DYNAMIC Rating Input Section with actual scores from database -->
+                    <div class="border rounded-lg p-4 bg-gray-50">
+                        <p class="font-medium mb-2">Performance Ratings</p>
+
+                        <?php
+                        $criteriaLabels = [
+                            1 => 'Job Knowledge',
+                            2 => 'Quality of Work',
+                            3 => 'Customer Service',
+                            4 => 'Teamwork & Collaboration',
+                            5 => 'Attendance & Punctuality'
+                        ];
+
+                        // Calculate total for display
+                        $totalScore = 0;
+                        for ($i = 1; $i <= 5; $i++):
+                            $scoreField = "criteria_{$i}_score";
+                            $currentScore = $eval[$scoreField] ?? 3;
+                            $totalScore += $currentScore;
+                            ?>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm"><?= $criteriaLabels[$i] ?>:</span>
+                                <select name="criteria_score[<?= $i ?>]" class="border rounded px-3 py-1 text-sm w-24">
+                                    <option value="1" <?= $currentScore == 1 ? 'selected' : '' ?>>1 - Needs Improvement</option>
+                                    <option value="2" <?= $currentScore == 2 ? 'selected' : '' ?>>2 - Developing</option>
+                                    <option value="3" <?= $currentScore == 3 ? 'selected' : '' ?>>3 - Meets Expectations</option>
+                                    <option value="4" <?= $currentScore == 4 ? 'selected' : '' ?>>4 - Exceeds Expectations</option>
+                                    <option value="5" <?= $currentScore == 5 ? 'selected' : '' ?>>5 - Outstanding</option>
+                                </select>
+                            </div>
+                        <?php endfor; ?>
+
+                        <div class="mt-3 pt-3 border-t">
+                            <?php
+                            $averageScore = $totalScore / 5;
+                            $scoreColor = 'text-blue-600';
+                            if ($averageScore < 2.5) {
+                                $scoreColor = 'text-red-600';
+                            } elseif ($averageScore >= 4) {
+                                $scoreColor = 'text-green-600';
+                            }
+                            ?>
+                            <p class="text-sm">Overall Score: <span class="font-bold <?= $scoreColor ?>">
+                                    <?= number_format($averageScore, 1) ?>/5.0
+                                </span></p>
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium mb-1">Areas for Improvement</label>
                         <textarea name="improvement_areas" class="profile-input w-full p-2 border rounded" rows="3"
-                            required></textarea>
+                            required><?= htmlspecialchars($eval['improvement_areas'] ?? '') ?></textarea>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium mb-1">Specific Goals</label>
                         <input type="text" name="goal1" class="profile-input w-full p-2 border rounded mb-2"
-                            placeholder="Goal 1: Improve customer service ratings to 4.0+">
+                            placeholder="Goal 1: Improve customer service ratings to 4.0+"
+                            value="<?= htmlspecialchars($eval['goal1'] ?? '') ?>">
                         <input type="text" name="goal2" class="profile-input w-full p-2 border rounded mb-2"
-                            placeholder="Goal 2: Reduce errors in order processing">
+                            placeholder="Goal 2: Reduce errors in order processing"
+                            value="<?= htmlspecialchars($eval['goal2'] ?? '') ?>">
                         <input type="text" name="goal3" class="profile-input w-full p-2 border rounded"
-                            placeholder="Goal 3: Improve punctuality (no more than 1 late arrival)">
+                            placeholder="Goal 3: Improve punctuality (no more than 1 late arrival)"
+                            value="<?= htmlspecialchars($eval['goal3'] ?? '') ?>">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-sm font-medium mb-1">Start Date</label>
                             <input type="date" name="pip_start_date" class="profile-input w-full p-2 border rounded"
-                                value="<?= date('Y-m-d') ?>" required>
+                                value="<?= $hasExistingPip ? $eval['pip_start_date'] : date('Y-m-d') ?>" required>
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">End Date</label>
                             <input type="date" name="pip_end_date" class="profile-input w-full p-2 border rounded"
-                                value="<?= date('Y-m-d', strtotime('+30 days')) ?>" required>
+                                value="<?= $hasExistingPip ? $eval['pip_end_date'] : date('Y-m-d', strtotime('+30 days')) ?>"
+                                required>
                         </div>
                     </div>
 
                     <div class="flex justify-end gap-2 pt-4 border-t">
                         <button type="button" class="px-4 py-2 border rounded-lg hover:bg-gray-50"
-                            onclick="closeModal('pipModal_<?= $eval['employee_id'] ?>')">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
-                            Create PIP
+                            onclick="closeModal('pipModal_<?= $eval['employee_id'] ?>')">
+                            Cancel
                         </button>
+
+                        <?php if ($employeeNeedImprovement): ?>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                                Update PIP
+                            </button>
+                        <?php else: ?>
+                            <button type="submit" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg">
+                                Create PIP
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </form>
             </div>
