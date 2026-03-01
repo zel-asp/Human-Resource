@@ -1,29 +1,27 @@
-<div id="hr-form" class="hidden">
-    <div
-        class="flex items-center gap-2 bg-[#ecf3fa] border border-[#d1ddeb] rounded-full px-4 py-2 mb-6 text-xs text-[#1e3a5f]">
-        <span>HR Manager portal</span>
+<div class="hr-content form-container" style="display: none;">
+    <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-[#1e3a5f] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-user-tie text-white text-2xl"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800">HR Manager Login</h3>
+        <p class="text-gray-500 text-sm mt-1">Sign in to access HR management system</p>
     </div>
 
-    <form action="#" method="post" class="space-y-5">
-        <div>
-            <label class="block text-sm font-medium text-[#2c3f4f] mb-1.5">
-                <i class="fa fa-id-badge mr-1.5 text-[#5b7a95] text-xs"></i>HR email
-            </label>
-            <input type="text" name="hr_email" placeholder="Enter your email" value=""
-                class="w-full px-4 py-2.5 bg-white border border-[#cad3df] rounded-lg text-[#1a2b36] text-sm placeholder-[#8f9fb0] focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10 transition-all">
+    <form action="/hr-login" method="post">
+        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+        <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" name="hr_email" placeholder="HR Email" value="">
         </div>
 
-        <div>
-            <label class="block text-sm font-medium text-[#2c3f4f] mb-1.5">
-                <i class="fa fa-lock mr-1.5 text-[#5b7a95] text-xs"></i>Password
-            </label>
-            <input type="password" name="hr_password" placeholder="" value=""
-                class="w-full px-4 py-2.5 bg-white border border-[#cad3df] rounded-lg text-[#1a2b36] text-sm placeholder-[#8f9fb0] focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/10 transition-all">
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" name="hr_password" placeholder="Password" value="">
         </div>
-        <button type="submit"
-            class="w-full bg-[#1e3a5f] hover:bg-primary-hover text-white font-medium py-2.5 px-4 rounded-lg border border-[#122b42] transition-colors flex items-center justify-center gap-2 text-sm shadow-sm">
-            <i class="fa fa-arrow-right-to-bracket"></i>
-            Sign in
+
+        <button type="submit" class="login-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            Sign In
         </button>
     </form>
 </div>
