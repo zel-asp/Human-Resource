@@ -1,0 +1,10 @@
+<?php
+require base_path("core/middleware/employeeAuth.php");
+
+// Destroy all session data
+$_SESSION = [];
+session_destroy();
+
+// Redirect to login page
+header('Location: /login');
+exit();
