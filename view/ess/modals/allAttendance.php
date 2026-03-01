@@ -1,0 +1,214 @@
+<!-- All Time Attendance Modal -->
+<div id="allAttendanceModal"
+    class="fixed inset-0 bg-gray-800/40 flex items-center justify-center hidden modal-enter z-50">
+    <div class="bg-white rounded-md max-w-4xl w-full mx-4 p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-5 sticky top-0 bg-white pb-2 border-b z-10">
+            <h3 class="text-lg font-bold text-gray-800">
+                <i class="fa-solid fa-calendar-alt mr-2 text-primary"></i>Complete Attendance History
+            </h3>
+            <button class="close-modal text-gray-400 hover:text-gray-600" data-modal="allAttendanceModal">
+                <i class="fa-solid fa-circle-xmark fa-xl"></i>
+            </button>
+        </div>
+
+        <!-- Lifetime Stats Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div class="bg-linear-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+                <span class="text-xs text-blue-600 font-medium">Total Days Worked</span>
+                <p class="text-2xl font-bold text-blue-800"><?= $allTimeStats['total_days_worked'] ?? 0 ?></p>
+                <p class="text-xs text-blue-600 mt-1">
+                    Since
+                    <?= isset($allTimeStats['first_work_date']) && $allTimeStats['first_work_date'] ? date('M Y', strtotime($allTimeStats['first_work_date'])) : 'N/A' ?>
+                </p>
+            </div>
+
+            <div class="bg-linear-to-br from-green-50 to-green-100 p-4 rounded-lg">
+                <span class="text-xs text-green-600 font-medium">Total Hours</span>
+                <p class="text-2xl font-bold text-green-800">
+                    <?= floor(($allTimeStats['total_regular_hours'] ?? 0) + ($allTimeStats['total_overtime_hours'] ?? 0)) ?>
+                </p>
+                <p class="text-xs text-green-600 mt-1">
+                    Reg: <?= floor($allTimeStats['total_regular_hours'] ?? 0) ?>h ·
+                    OT: <?= floor($allTimeStats['total_overtime_hours'] ?? 0) ?>h
+                </p>
+            </div>
+
+            <div class="bg-linear-to-br from-amber-50 to-amber-100 p-4 rounded-lg">
+                <span class="text-xs text-amber-600 font-medium">Attendance Rate</span>
+                <p class="text-2xl font-bold text-amber-800"><?= $attendanceRate ?? 0 ?>%</p>
+                <p class="text-xs text-amber-600 mt-1">
+                    <?= $allTimeStats['total_days_worked'] ?? 0 ?>/<?= $workingDaysSince ?? 0 ?> days
+                </p>
+            </div>
+
+            <div class="bg-linear-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+                <span class="text-xs text-purple-600 font-medium">Late Days</span>
+                <p class="text-2xl font-bold text-purple-800"><?= $allTimeStats['total_late_days'] ?? 0 ?></p>
+                <p class="text-xs text-purple-600 mt-1">
+                    <?= $allTimeStats['total_late_minutes'] ?? 0 ?> minutes total
+                </p>
+            </div>
+        </div>
+
+        <!-- Monthly Trends -->
+        <?php if (!empty($attendanceByMonth)): ?>
+            <div class="mb-6">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">Monthly Trends</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <?php foreach ($attendanceByMonth as $month): ?>
+                        <div class="border rounded-lg p-3 hover:shadow-md transition">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium text-sm"><?= $month['month_name'] ?></span>
+                                <span class="text-xs bg-gray-100 px-2 py-1 rounded-full"><?= $month['days_worked'] ?>
+                                    days</span>
+                            </div>
+                            <div class="space-y-1 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Regular:</span>
+                                    <span class="font-medium"><?= floor($month['total_regular']) ?>h</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Overtime:</span>
+                                    <span class="font-medium text-amber-600"><?= floor($month['total_overtime']) ?>h</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Late:</span>
+                                    <span class="font-medium <?= $month['late_days'] > 0 ? 'text-red-600' : '' ?>">
+                                        <?= $month['late_days'] ?> days (<?= $month['total_late'] ?>m)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- All Records Table -->
+        <div>
+            <h4 class="text-sm font-semibold text-gray-700 mb-3">Complete History</h4>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Date</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Day</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Clock In</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Clock Out</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Duration</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Regular</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">OT</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <?php if (!empty($allAttendanceRecords)): ?>
+                            <?php foreach ($allAttendanceRecords as $record): ?>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-3 py-2"><?= date('M d, Y', strtotime($record['date'])) ?></td>
+                                    <td class="px-3 py-2"><?= $record['day_name'] ?></td>
+                                    <td class="px-3 py-2"><?= $record['clock_in_time'] ?></td>
+                                    <td class="px-3 py-2"><?= $record['clock_out_time'] ?? '---' ?></td>
+                                    <td class="px-3 py-2"><?= $record['total_duration'] ?? '---' ?></td>
+                                    <td class="px-3 py-2">
+                                        <?php
+                                        $hours = floor($record['regular_hours']);
+                                        $minutes = round(($record['regular_hours'] - $hours) * 60);
+                                        echo $hours . 'h ' . str_pad($minutes, 2, '0', STR_PAD_LEFT) . 'm';
+                                        ?>
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        <?php if ($record['overtime_hours'] > 0): ?>
+                                            <span class="text-amber-600">
+                                                <?php
+                                                $otHours = floor($record['overtime_hours']);
+                                                $otMinutes = round(($record['overtime_hours'] - $otHours) * 60);
+                                                echo '+' . $otHours . 'h ' . str_pad($otMinutes, 2, '0', STR_PAD_LEFT) . 'm';
+                                                ?>
+                                            </span>
+                                        <?php else: ?>
+                                            ---
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="px-3 py-2">
+                                        <?php if (isset($record['late_status']) && $record['late_status'] == 'late'): ?>
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs">
+                                                <i class="fa-solid fa-clock"></i> Late <?= $record['late_minutes'] ?>m
+                                            </span>
+                                        <?php elseif (isset($record['late_status']) && $record['late_status'] == 'grace_period'): ?>
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-600 rounded-full text-xs">
+                                                <i class="fa-solid fa-hourglass"></i> Grace
+                                            </span>
+                                        <?php elseif (isset($record['early_departure_minutes']) && $record['early_departure_minutes'] > 0): ?>
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-600 rounded-full text-xs">
+                                                <i class="fa-solid fa-door-open"></i> Early
+                                                <?= $record['early_departure_minutes'] ?>m
+                                            </span>
+                                        <?php else: ?>
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs">
+                                                <i class="fa-solid fa-check"></i> On Time
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" class="px-3 py-8 text-center text-gray-500">
+                                    <i class="fa-regular fa-calendar-xmark text-3xl mb-2"></i>
+                                    <p>No attendance records found</p>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <?php if (isset($totalPages) && $totalPages > 1): ?>
+                <div class="flex justify-center items-center gap-2 mt-4">
+                    <?php if ($currentPage > 1): ?>
+                        <a href="?tab=attendance&page=<?= $currentPage - 1 ?>&modal=allAttendanceModal"
+                            class="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 transition">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </a>
+                    <?php endif; ?>
+
+                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                        <a href="?tab=attendance&page=<?= $i ?>&modal=allAttendanceModal"
+                            class="px-3 py-1 page-btn <?= $i == $currentPage ? 'bg-primary text-white' : 'bg-gray-100 hover:bg-gray-200' ?> rounded-md transition"
+                            data-page="<?= $i ?>">
+                            <?= $i ?>
+                        </a>
+                    <?php endfor; ?>
+
+                    <?php if ($currentPage < $totalPages): ?>
+                        <a href="?tab=attendance&page=<?= $currentPage + 1 ?>&modal=allAttendanceModal"
+                            class="px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 transition">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Summary Footer -->
+        <div class="mt-6 p-4 bg-gray-50 rounded-lg flex flex-wrap justify-between items-center">
+            <div class="text-sm text-gray-600">
+                <span class="font-medium">Summary:</span>
+                <?= $allTimeStats['total_days_worked'] ?? 0 ?> total days ·
+                <?= floor($allTimeStats['total_regular_hours'] ?? 0) ?> regular hours ·
+                <?= floor($allTimeStats['total_overtime_hours'] ?? 0) ?> overtime hours
+            </div>
+            <button
+                class="close-modal bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-hover transition"
+                data-modal="allAttendanceModal">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
