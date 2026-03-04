@@ -24,6 +24,8 @@
                 <thead>
                     <tr class="border-b border-gray-200">
                         <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Name</th>
+                        <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Age</th>
+                        <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Gender</th>
                         <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Position</th>
                         <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Applied Date</th>
                         <th class="text-left py-3 px-4 text-sm font-medium text-gray-600">Resume</th>
@@ -37,6 +39,8 @@
                             <?php
                             $id = (int) $applicant['id'];
                             $fullName = htmlspecialchars($applicant['full_name']);
+                            $age = htmlspecialchars($applicant['age']);
+                            $gender = htmlspecialchars($applicant['gender']);
                             $position = htmlspecialchars($applicant['position']);
                             $email = htmlspecialchars($applicant['email']);
                             $phone = htmlspecialchars($applicant['phone']);
@@ -109,6 +113,16 @@
                                         <span><?= $fullName ?></span>
                                     </div>
                                 </td>
+                                <td class="py-4 px-4 font-medium">
+                                    <div class="flex items-center gap-2">
+                                        <span><?= $age ?></span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-4 font-medium">
+                                    <div class="flex items-center gap-2">
+                                        <span><?= $gender ?></span>
+                                    </div>
+                                </td>
                                 <td class="py-4 px-4">
                                     <span class="px-3 py-1 rounded-full text-xs font-medium bg-white border border-gray-200">
                                         <i class="fas fa-briefcase mr-1 text-gray-500"></i>
@@ -158,7 +172,7 @@
                                         <input type="date" name="start_date"
                                             class="start-date-input w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
                                             value="<?= htmlspecialchars($applicant['start_date'] ?? '') ?>"
-                                            data-id="<?= $id ?>">
+                                            data-id="<?= $id ?>" min="<?= date('Y-m-d') ?>">
                                     </div>
                                 </td>
 

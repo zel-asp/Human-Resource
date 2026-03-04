@@ -6,8 +6,13 @@
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
-        <form class="space-y-4">
-            <!-- Review Learning Result (from competency gap) -->
+
+        <form action="/addTraining" method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+
+            <!-- Hidden field to track if we should notify -->
+            <input type="hidden" name="notify" id="notifyFlag" value="false">
+
             <div class="bg-yellow-50 p-4 rounded-lg mb-2">
                 <label class="block text-sm font-medium mb-2">Based on Competency Gap</label>
                 <div class="text-sm">
@@ -21,7 +26,7 @@
             <!-- Training Type -->
             <div>
                 <label class="block text-sm font-medium mb-1">Training Type</label>
-                <select class="profile-input w-full p-2 border rounded" id="trainingType"
+                <select name="training_type" class="profile-input w-full p-2 border rounded" id="trainingType" required
                     onchange="toggleProviderFields()">
                     <option value="">Select Training Type</option>
                     <option value="internal">Internal Training</option>
@@ -30,59 +35,31 @@
                 </select>
             </div>
 
-            <!-- Training Provider (dynamic based on type) -->
-            <div id="internalProvider" class="hidden">
-                <label class="block text-sm font-medium mb-1">Internal Trainer</label>
-                <select class="profile-input w-full p-2 border rounded">
-                    <option>Select Internal Trainer</option>
-                    <option>Sarah Johnson - Senior Trainer</option>
-                    <option>Mike Chen - Technical Lead</option>
-                    <option>Lisa Wong - Compliance Officer</option>
-                    <option>David Kim - Department Head</option>
+            <!-- Provider dropdown -->
+            <div id="providerDropdown" class="hidden">
+                <label class="block text-sm font-medium mb-1">Select Training Provider</label>
+                <select class="profile-input w-full p-2 border rounded" name="provider_id" required>
+                    <option value="">Select Provider</option>
+                    <?php foreach ($trainingProviders as $trainingProvider): ?>
+                        <option value="<?= $trainingProvider['id'] ?>">
+                            <?= htmlspecialchars($trainingProvider['name']) ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
-            </div>
-
-            <div id="externalProvider" class="hidden">
-                <label class="block text-sm font-medium mb-1">External Training Provider</label>
-                <select class="profile-input w-full p-2 border rounded">
-                    <option>Select Provider</option>
-                    <option>SafeFood Certification Inc.</option>
-                    <option>Hospitality Training Institute</option>
-                    <option>Leadership Academy International</option>
-                    <option>TechSkills Learning Center</option>
-                </select>
-                <div class="mt-2">
-                    <label class="block text-sm font-medium mb-1">Or Add New Provider</label>
-                    <input type="text" class="profile-input w-full p-2 border rounded" placeholder="Provider name">
-                </div>
-            </div>
-
-            <div id="certificationProvider" class="hidden">
-                <label class="block text-sm font-medium mb-1">Certifying Body</label>
-                <select class="profile-input w-full p-2 border rounded">
-                    <option>Select Certifying Body</option>
-                    <option>ServSafe Certification</option>
-                    <option>American Hotel & Lodging Association</option>
-                    <option>Project Management Institute</option>
-                    <option>National Restaurant Association</option>
-                </select>
-                <div class="mt-2">
-                    <label class="block text-sm font-medium mb-1">Certification Code</label>
-                    <input type="text" class="profile-input w-full p-2 border rounded" placeholder="e.g., SERV-101">
-                </div>
             </div>
 
             <!-- Training Details -->
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3">
                 <div>
-                    <label class="block text-sm font-medium mb-1">Training Title</label>
-                    <input type="text" class="profile-input w-full p-2 border rounded"
-                        value="Customer Service Excellence" readonly>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Training Code</label>
-                    <input type="text" class="profile-input w-full p-2 border rounded" placeholder="Auto-generated"
-                        readonly>
+                    <label class="block text-sm font-medium">Competency to Assess</label>
+                    <select class="profile-input" name="competency_id" required>
+                        <option value="">Select competency</option>
+                        <?php foreach ($competencies as $competency): ?>
+                            <option value="<?= $competency['id'] ?>">
+                                <?= htmlspecialchars($competency['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
 
@@ -92,52 +69,51 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-sm font-medium mb-1">Start Date</label>
-                        <input type="date" class="profile-input w-full p-2 border rounded">
+                        <input type="date" name="start_date" class="profile-input w-full p-2 border rounded"
+                            min="<?= date('Y-m-d') ?>" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">End Date</label>
-                        <input type="date" class="profile-input w-full p-2 border rounded">
+                        <input type="date" name="end_date" class="profile-input w-full p-2 border rounded"
+                            min="<?= date('Y-m-d') ?>" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">Start Time</label>
-                        <input type="time" class="profile-input w-full p-2 border rounded">
+                        <input type="time" name="start_time" class="profile-input w-full p-2 border rounded">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-1">End Time</label>
-                        <input type="time" class="profile-input w-full p-2 border rounded">
+                        <input type="time" name="end_time" class="profile-input w-full p-2 border rounded">
                     </div>
                 </div>
                 <div class="mt-3">
                     <label class="block text-sm font-medium mb-1">Location/Venue</label>
-                    <input type="text" class="profile-input w-full p-2 border rounded"
+                    <input type="text" name="venue" class="profile-input w-full p-2 border rounded"
                         placeholder="e.g., Training Room A / Zoom link">
                 </div>
             </div>
 
             <!-- Employee Selection -->
             <div>
-                <label class="block text-sm font-medium mb-1">Select Employees</label>
-                <select class="profile-input w-full p-2 border rounded" multiple size="3">
-                    <option selected>Grace Lee - Server (Customer Service Gap)</option>
-                    <option>John Smith - Cook (Food Safety Gap)</option>
-                    <option>Maria Garcia - Manager (Leadership Gap)</option>
-                    <option>James Wilson - Server (Customer Service Gap)</option>
+                <label class="block text-sm font-medium mb-1">Select Employee</label>
+                <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" name="employee_id" required>
+                    <option value="">Select employee</option>
+                    <?php foreach ($employeeRole as $employee): ?>
+                        <option value="<?= $employee['id'] ?>">
+                            <?= htmlspecialchars($employee['full_name']) ?> -
+                            <?= htmlspecialchars($employee['position']) ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
-                <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
-            </div>
-
-            <!-- Notify Employee -->
-            <div class="flex items-center gap-3 border-t pt-4">
-                <input type="checkbox" id="notifyEmployee" class="w-4 h-4" checked>
-                <label for="notifyEmployee" class="text-sm font-medium">Send notification to selected employees</label>
             </div>
 
             <!-- Form Actions -->
             <div class="flex justify-end gap-2 pt-4">
                 <button type="button" class="px-4 py-2 bg-gray-200 rounded-lg"
-                    onclick="closeModal('trainingModal')">Cancel</button>
-                <button type="button" class="btn-primary px-4 py-2" onclick="scheduleAndNotify()">
-                    <i class="fas fa-calendar-check mr-2"></i>Schedule & Notify
+                    onclick="closeModal('trainingModal')">Cancel
+                </button>
+                <button type="submit" class="btn-primary px-4 py-2">
+                    <i class="fas fa-calendar-check mr-2"></i>Schedule
                 </button>
             </div>
         </form>
