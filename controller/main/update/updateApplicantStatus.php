@@ -6,10 +6,6 @@ header('Content-Type: application/json');
 $config = require base_path('config/config.php');
 $db = new Database($config['database']);
 
-// session already started elsewhere
-$_SESSION['success'] ??= [];
-$_SESSION['error'] ??= [];
-
 try {
 
 
@@ -69,9 +65,9 @@ try {
             $employeeNumber = 'EMP-' . str_pad($id, 3, '0', STR_PAD_LEFT);
             $db->query("
                 INSERT INTO employees 
-                    (applicant_id, employee_number, full_name, email, phone, position, department, start_date, hired_date, status) 
+                    (applicant_id, employee_number, full_name, email, phone, position, department, start_date, hired_date, status, age, gender) 
                 VALUES 
-                    (:applicant_id, :employee_number, :full_name, :email, :phone, :position, :department, :start_date, :hired_date, 'Probationary')
+                    (:applicant_id, :employee_number, :full_name, :email, :phone, :position, :department, :start_date, :hired_date, 'Probationary', :age, :gender)
             ", [
                 'applicant_id' => $id,
                 'employee_number' => $employeeNumber,
@@ -81,7 +77,9 @@ try {
                 'position' => $applicant['position'],
                 'department' => $applicant['department'] ?? null,
                 'start_date' => $startDate,
-                'hired_date' => $applicant['hired_date'] ?? date('Y-m-d')
+                'hired_date' => $applicant['hired_date'] ?? date('Y-m-d'),
+                'age' => $applicant['age'],
+                'gender' => $applicant['gender'],
             ]);
         }
 
