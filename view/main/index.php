@@ -231,16 +231,20 @@
         <!-- New Claim Modal -->
         <?php require base_path('view/main/modals/claim.php'); ?>
 
-        <!-- Add Employee Modal -->
-        <?php require base_path('view/main/modals/addEmployee.php'); ?>
-
         <!-- Salary Review Modal -->
         <?php require base_path('view/main/modals/salaryReview.php'); ?>
 
         <!-- Enroll Benefit Modal -->
         <?php require base_path('view/main/modals/enrollBenefit.php'); ?>
 
+        <?php require base_path('view/main/modals/sucessor.php'); ?>
+
+        <!-- CORE HUMAN CAPITAL -->
+        <?php require base_path('view/main/modals/viewEmployeeDetails.php'); ?>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="/assets/js/main.js"></script>
+        <script src="/assets/js/analytics.js"></script>
 
     </body>
 

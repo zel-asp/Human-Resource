@@ -50,40 +50,6 @@
             </div>
         </div>
 
-        <!-- Monthly Trends -->
-        <?php if (!empty($attendanceByMonth)): ?>
-            <div class="mb-6">
-                <h4 class="text-sm font-semibold text-gray-700 mb-3">Monthly Trends</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <?php foreach ($attendanceByMonth as $month): ?>
-                        <div class="border rounded-lg p-3 hover:shadow-md transition">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="font-medium text-sm"><?= $month['month_name'] ?></span>
-                                <span class="text-xs bg-gray-100 px-2 py-1 rounded-full"><?= $month['days_worked'] ?>
-                                    days</span>
-                            </div>
-                            <div class="space-y-1 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Regular:</span>
-                                    <span class="font-medium"><?= floor($month['total_regular']) ?>h</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Overtime:</span>
-                                    <span class="font-medium text-amber-600"><?= floor($month['total_overtime']) ?>h</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Late:</span>
-                                    <span class="font-medium <?= $month['late_days'] > 0 ? 'text-red-600' : '' ?>">
-                                        <?= $month['late_days'] ?> days (<?= $month['total_late'] ?>m)
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        <?php endif; ?>
-
         <!-- All Records Table -->
         <div>
             <h4 class="text-sm font-semibold text-gray-700 mb-3">Complete History</h4>

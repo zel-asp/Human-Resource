@@ -26,6 +26,7 @@
                     <option value="Sick Leave">Sick leave</option>
                     <option value="Personal Day">Personal day</option>
                     <option value="Remote Work">Remote work</option>
+                    <option value="Emergency leave">Emergency leave</option>
                 </select>
             </div>
 

@@ -136,11 +136,6 @@
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <span class="<?= $statusClass ?> px-3 py-1 text-xs font-medium rounded-md flex items-center gap-1">
-                                <i class="<?= $statusIcon ?>"></i>
-                                <?= $statusText ?>
-                            </span>
-
                             <?php if ($request['status'] == 'Pending'): ?>
                                 <button onclick="cancelLeaveRequest(<?= $request['id'] ?>)"
                                     class="opacity-0 group-hover:opacity-100 transition bg-red-600 hover:bg-red-700 text-white p-2 rounded-md text-xs"
@@ -148,6 +143,10 @@
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             <?php endif; ?>
+                            <span class="<?= $statusClass ?> px-3 py-1 text-xs font-medium rounded-md flex items-center gap-1">
+                                <i class="<?= $statusIcon ?>"></i>
+                                <?= $statusText ?>
+                            </span>
                         </div>
                     </div>
                 <?php endforeach; ?>

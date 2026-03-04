@@ -27,15 +27,20 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
-                    <span
-                        class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-md text-sm shadow-sm border border-gray-200">
-                        <span class="relative flex h-2 w-2">
-                            <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    <?php if ($attendanceStatus != 'clocked_out'): ?>
+                        <span
+                            class=" sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-md text-sm shadow-sm border border-gray-200">
+                            <span class="relative flex h-2 w-2">
+                                <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                            <?php if ($currentAttendance && isset($currentAttendance['clock_in'])): ?>
+                                clocked in ·
+                                <?= date('g:i A', strtotime($currentAttendance['clock_in'])) ?>
+                            <?php endif; ?>
                         </span>
-                        clocked in · 09:14
-                    </span>
+                    <?php endif; ?>
 
                     <!-- Logout Form -->
                     <form method="POST" action="/logout">
@@ -68,8 +73,8 @@
                                         <?= htmlspecialchars($employeeInfo['department'] ?? 'N/A') ?>
                                     </span>
                                     <span class="text-sm">
-                                        <span class="font-medium text-gray-700">Manager:</span>
-                                        <?= htmlspecialchars($employeeInfo['manager'] ?? 'Sarah V.') ?>
+                                        <span class="font-medium text-gray-700">Name:</span>
+                                        <?= htmlspecialchars($employeeInfo['full_name'] ?? 'Sarah V.') ?>
                                     </span>
                                     <!-- In the personal details section, line ~76 -->
                                     <span class="text-sm">
@@ -384,17 +389,24 @@
                                             </div>
 
                                             <div class="flex items-center gap-2">
+                                                <?php if ($request['status'] == 'Pending'): ?>
+                                                    <form action="/remove-request" method="POST">
+                                                        <input type="hidden" name="request_id" value="<?= $request['id'] ?>">
+                                                        <input type="hidden" name="csrf_token"
+                                                            value="<?= $_SESSION['csrf_token'] ?>">
+                                                        <input type="hidden" name="__method" value="DELETE">
+                                                        <button
+                                                            class="opacity-0 group-hover:opacity-100 transition bg-red-600 hover:bg-red-700 text-white p-2 rounded-md text-xs"
+                                                            title="Delete task" type="submit"
+                                                            onclick="return confirm('Are you sure you want to delete this task?')">
+                                                            <i class="fa-solid fa-xmark"></i>
+                                                        </button>
+                                                    </form>
+                                                <?php endif; ?>
+
                                                 <span class="<?= $statusClass ?> px-3 py-1 text-xs font-medium rounded-md">
                                                     <?= $request['status'] ?>
                                                 </span>
-
-                                                <?php if ($request['status'] == 'Pending'): ?>
-                                                    <button
-                                                        class="opacity-0 group-hover:opacity-100 transition bg-red-600 hover:bg-red-700 text-white p-2 rounded-md text-xs"
-                                                        onclick="cancelLeaveRequest(<?= $request['id'] ?>)" title="Cancel request">
-                                                        <i class="fa-solid fa-xmark"></i>
-                                                    </button>
-                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
@@ -673,7 +685,7 @@
                 elapsedSeconds: <?= $elapsedSeconds ?>,
                 csrfToken: '<?= $_SESSION['csrf_token'] ?>',
                 <?php if ($currentAttendance && isset($currentAttendance['clock_in'])): ?>
-                            shiftStartTime: '<?= $currentAttendance['clock_in'] ?>'
+                                                                                                                                                        shiftStartTime: '<?= $currentAttendance['clock_in'] ?>'
         <?php endif; ?>
             };
         </script>
