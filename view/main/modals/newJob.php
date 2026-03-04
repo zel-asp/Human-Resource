@@ -1,50 +1,95 @@
-<div id="newJobModal" class="modal">
-    <div class="modal-content">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-semibold">Create New Job Posting</h3>
-            <button onclick="closeModal('newJobModal')" class="text-gray-500 hover:text-gray-700">
+<div id="newJobModal" class="modal fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4">
+        <!-- Modal Header -->
+        <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">Create New Job Posting</h3>
+            <button onclick="closeModal('newJobModal')"
+                class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
 
-        <form method="POST" action="/postJob" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Job Position</label>
-                <input type="text" class="profile-input" value="Restaurant Server" name="position">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                <select class="profile-input" name="department">
-                    <option value="Management" selected>Management</option>
-                    <option value="Restaurant">Restaurant</option>
-                    <option value="Hotel">Hotel</option>
-                    <option value="HR">HR</option>
-                    <option value="Logistic">Logistic</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <input type="text" class="profile-input" value="Main Dining Room" name="location">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Shift</label>
-                <select class="profile-input" name="shift">
-                    <option value="evening" selected>Evening (4pm-12am)</option>
-                    <option value="gy">Grave yard (12am-6am)</option>
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form method="POST" action="/postJob" class="space-y-4">
+                <!-- Job Position -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Job Position <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text"
+                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition-all duration-200 text-gray-700"
+                        value="Restaurant Server" name="position" placeholder="e.g. Senior Chef, Restaurant Manager">
+                </div>
 
-                    <option value="morning">Morning (6am-3pm)</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Salary Range</label>
-                <input type="text" class="profile-input" value="$15-20/hr + tips" name="salary">
-            </div>
-            <div class="flex justify-end gap-2 mt-6">
-                <button type="button" class="px-4 py-2 bg-gray-200 rounded-lg"
-                    onclick="closeModal('newJobModal')">Cancel</button>
-                <button name="post" type="submit" class="btn-primary" onclick="submitJobPosting(event)">Create
-                    Posting</button>
-            </div>
-        </form>
+                <!-- Department -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Department <span class="text-red-500">*</span>
+                    </label>
+                    <select
+                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition-all duration-200 text-gray-700 appearance-none"
+                        name="department"
+                        style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'6 9 12 15 18 9\'/></svg>'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1rem;">
+                        <option value="Management" selected>Management</option>
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Hotel">Hotel</option>
+                        <option value="HR">HR</option>
+                        <option value="Logistic">Logistic</option>
+                        <option value="Finance">Finance</option>
+                    </select>
+                </div>
+
+                <!-- Location -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Location <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text"
+                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition-all duration-200 text-gray-700"
+                        value="Main Dining Room" name="location" placeholder="e.g. Downtown, North Wing">
+                </div>
+
+                <!-- Shift -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Shift <span class="text-red-500">*</span>
+                    </label>
+                    <select
+                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition-all duration-200 text-gray-700 appearance-none"
+                        name="shift"
+                        style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><polyline points=\'6 9 12 15 18 9\'/></svg>'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1rem;">
+                        <option value="evening" selected>Evening (4pm-12am)</option>
+                        <option value="gy">Graveyard (12am-6am)</option>
+                        <option value="morning">Morning (6am-3pm)</option>
+                    </select>
+                </div>
+
+                <!-- Salary Range -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Salary Range <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text"
+                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition-all duration-200 text-gray-700"
+                        value="₱15-20/hr + tips" name="salary" placeholder="e.g. $40-50k/year">
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                    <button type="button"
+                        class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-colors duration-200"
+                        onclick="closeModal('newJobModal')">
+                        Cancel
+                    </button>
+                    <button name="post" type="submit"
+                        class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg transition-colors duration-200 flex items-center gap-2"
+                        onclick="submitJobPosting(event)">
+                        <i class="fas fa-plus-circle"></i>
+                        Create Posting
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>

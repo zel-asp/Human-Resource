@@ -32,7 +32,7 @@
             </div>
             <div>
                 <label class="block text-sm font-medium mb-1">Date of Expense</label>
-                <input type="date" class="profile-input w-full p-2 border rounded">
+                <input type="date" class="profile-input w-full p-2 border rounded" min="<?= date('Y-m-d') ?>">
             </div>
             <div>
                 <label class="block text-sm font-medium mb-1">Description</label>

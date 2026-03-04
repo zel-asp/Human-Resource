@@ -172,7 +172,7 @@
                     <div>
                         <label class="block text-sm font-medium mb-1">Effective Date</label>
                         <input type="date" name="effective_date" class="profile-input w-full p-2 border rounded"
-                            value="<?= date('Y-m-d') ?>" required>
+                            value="<?= date('Y-m-d') ?>" min="<?= date('Y-m-d') ?>" required>
                     </div>
 
                     <div>
@@ -309,13 +309,14 @@
                         <div>
                             <label class="block text-sm font-medium mb-1">Start Date</label>
                             <input type="date" name="pip_start_date" class="profile-input w-full p-2 border rounded"
-                                value="<?= $hasExistingPip ? $eval['pip_start_date'] : date('Y-m-d') ?>" required>
+                                value="<?= $hasExistingPip ? $eval['pip_start_date'] : date('Y-m-d') ?>"
+                                min="<?= date('Y-m-d') ?>" required>
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">End Date</label>
                             <input type="date" name="pip_end_date" class="profile-input w-full p-2 border rounded"
                                 value="<?= $hasExistingPip ? $eval['pip_end_date'] : date('Y-m-d', strtotime('+30 days')) ?>"
-                                required>
+                                required min="<?= date('Y-m-d') ?>">
                         </div>
                     </div>
 

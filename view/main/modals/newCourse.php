@@ -20,7 +20,7 @@
 
                             <option value="">-- Select an employee --</option>
 
-                            <?php foreach ($availableEmployees as $employee): ?>
+                            <?php foreach ($OnboardingAvailableEmployees as $employee): ?>
                                 <option value="<?= $employee['id'] ?>"
                                     data-employee-Id="EMP-<?= str_pad($employee['id'], 3, '0', STR_PAD_LEFT) ?>"
                                     data-name="<?= htmlspecialchars($employee['full_name']) ?>"
@@ -223,10 +223,10 @@
         <div class="modal-content max-w-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold">
-                    Onboarding Progress -
+                    Account History -
                     <?= htmlspecialchars($account['full_name']) ?>
                 </h3>
-                <button onclick="closeModal('onboardingProgressModal-<?= $account['applicant_id'] ?>')"
+                <button onclick="closeModal('onboardingProgressModal<?= $account['applicant_id'] ?>')"
                     class="text-gray-500 hover:text-gray-700">
                     <i class="fas fa-times text-xl"></i>
                 </button>
