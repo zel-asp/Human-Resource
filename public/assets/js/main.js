@@ -432,3 +432,90 @@ function openEditJobModal(id, position, location, shift, salary) {
 
     openModal('editJobModal');
 }
+
+
+//training
+function toggleProviderFields() {
+    const trainingType = document.getElementById('trainingType').value;
+    const providerDropdown = document.getElementById('providerDropdown');
+    const providerSelect = document.querySelector('select[name="provider_id"]');
+
+    // Show only if 'external' is selected
+    if (trainingType === 'external') {
+        providerDropdown.classList.remove('hidden');
+        providerSelect.setAttribute('required', 'required');
+    } else {
+        providerDropdown.classList.add('hidden');
+        providerSelect.removeAttribute('required');
+        // Optionally clear the value when hidden
+        providerSelect.value = '';
+    }
+}
+
+// Initialize on page load in case a default value is set
+document.addEventListener('DOMContentLoaded', () => toggleProviderFields());
+
+
+//competency
+function showCompetencyName() {
+    const employeeSelect = document.getElementById('employeeSelect');
+    const selectedOption = employeeSelect.options[employeeSelect.selectedIndex];
+
+    const competencyDisplay = document.getElementById('competencyNameDisplay');
+    const competencyIdInput = document.getElementById('competencyIdInput');
+
+    if (selectedOption && selectedOption.value) {
+        // Get competency name from the selected option's data attribute
+        const competencyName = selectedOption.dataset.competencyName;
+        const competencyId = selectedOption.dataset.competencyId;
+
+        // Show the competency name
+        competencyDisplay.value = competencyName;
+        competencyIdInput.value = competencyId;
+    } else {
+        // Clear if no employee selected
+        competencyDisplay.value = '';
+        competencyIdInput.value = '';
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function () {
+    showCompetencyName();
+});
+
+function applyHcmFilter() {
+    const url = new URL(window.location.href);
+    const status = document.querySelector('select[name="hcm_status"]').value;
+    const department = document.querySelector('select[name="hcm_department"]').value;
+    const role = document.querySelector('select[name="hcm_role"]').value;
+
+    url.searchParams.set('tab', 'hcm');
+    url.searchParams.set('hcm_page', '1');
+
+    if (status) {
+        url.searchParams.set('hcm_status', status);
+    } else {
+        url.searchParams.delete('hcm_status');
+    }
+
+    if (department) {
+        url.searchParams.set('hcm_department', department);
+    } else {
+        url.searchParams.delete('hcm_department');
+    }
+
+    if (role) {
+        url.searchParams.set('hcm_role', role);
+    } else {
+        url.searchParams.delete('hcm_role');
+    }
+
+    // Preserve search term
+    const search = document.querySelector('input[name="hcm_search"]').value;
+    if (search) {
+        url.searchParams.set('hcm_search', search);
+    }
+
+    window.location.href = url.toString();
+}

@@ -7,7 +7,7 @@ $db = new Database($config['database']);
 
 if (!isset($_SESSION['employee'])) {
     header('Location: /login');
-    $_SESSION['error'][] = "Login first boy";
+    $_SESSION['error'][] = "You are unathorized, login first";
     exit();
 }
 

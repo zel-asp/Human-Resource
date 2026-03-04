@@ -1,4 +1,4 @@
-// attendance.js - Pure JavaScript, no PHP
+// attendance.js 
 
 // Get config from global scope
 const config = window.attendanceConfig || {};
@@ -66,18 +66,28 @@ function handleAttendance(action) {
         })
     })
         .then(async response => {
+            // First check if response is ok
+            if (!response.ok) {
+                const text = await response.text();
+                try {
+                    const errorData = JSON.parse(text);
+                    throw new Error(errorData.message || `HTTP error ${response.status}`);
+                } catch (e) {
+                    // If response is not JSON, show first part of response for debugging
+                    console.error('Non-JSON response:', text.substring(0, 200));
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+            }
+
+            // Try to parse JSON
             const text = await response.text();
             console.log('Raw response:', text);
 
             try {
-                const data = JSON.parse(text);
-                if (!response.ok) {
-                    throw new Error(data.message || `HTTP error ${response.status}`);
-                }
-                return data;
+                return JSON.parse(text);
             } catch (e) {
                 console.error('Failed to parse JSON:', text.substring(0, 200));
-                throw new Error('Server returned invalid JSON');
+                throw new Error('Server returned invalid JSON response');
             }
         })
         .then(data => {
@@ -228,7 +238,7 @@ function showNotification(message, type) {
     }, 3000);
 }
 
-// Add CSS for notifications dynamically (only if not already added)
+// Add CSS for notifications dynamically
 if (!document.getElementById('attendance-notification-styles')) {
     const style = document.createElement('style');
     style.id = 'attendance-notification-styles';
