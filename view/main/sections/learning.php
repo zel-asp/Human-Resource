@@ -178,7 +178,8 @@
                                                 }
                                                 ?>
                                                 <!-- Task Item -->
-                                                <div class="flex items-center justify-between text-sm <?= $taskClass ?> p-2 rounded-lg">
+                                                <div class="flex items-center justify-between text-sm <?= $taskClass ?> p-2 rounded-lg"
+                                                    id="task<?= $task['id'] ?>">
                                                     <div class="flex items-center gap-2 flex-1">
                                                         <input type="checkbox"
                                                             onchange="updateTaskStatus(<?= $task['id'] ?>, this.checked ? 'Completed' : 'Not Started')"
@@ -201,15 +202,31 @@
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div class="text-right ml-4 flex items-center gap-2">
+                                                    <div class="text-right ml-4 flex items-center gap-3">
                                                         <?php if ($dueText): ?>
                                                             <span class="text-xs font-medium <?= $dueClass ?>">
                                                                 <i class="fas fa-calendar-alt mr-1"></i><?= $dueText ?>
                                                             </span>
                                                         <?php endif; ?>
+
                                                         <?php if ($task['priority'] == 'urgent' && !$checked): ?>
                                                             <i class="fas fa-exclamation-circle text-red-500"></i>
                                                         <?php endif; ?>
+
+                                                        <!-- Delete Button Form -->
+                                                        <form method="POST" action="/delete-task"
+                                                            onsubmit="return confirm('Are you sure you want to delete this task?');"
+                                                            class="inline">
+                                                            <input type="hidden" value="DELETE" name="__method">
+                                                            <input type="hidden" name="csrf_token"
+                                                                value="<?= $_SESSION['csrf_token'] ?>">
+                                                            <input type="hidden" name="task_id" value="<?= $task['id'] ?>">
+                                                            <button type="submit" name="delete-taskBtn"
+                                                                class="text-gray-400 hover:text-red-500 transition-colors duration-200"
+                                                                title="Delete task">
+                                                                <i class="fas fa-trash-alt text-sm"></i>
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </div>
                                             <?php endforeach; ?>

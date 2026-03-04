@@ -1,181 +1,210 @@
 <!-- Main Onboarding Content -->
 <div class="tab-content" id="onboarding-content">
-    <div class="flex justify-between items-center mb-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
             <h2 class="text-2xl font-semibold text-gray-800">New Hire Onboarding</h2>
-            <p class="text-gray-600 mt-1">Generate employee accounts and track onboarding progress</p>
+            <p class="text-gray-500 text-sm mt-1">Generate employee accounts and track onboarding progress</p>
         </div>
         <button class="btn-primary" onclick="openModal('generateAccountModal')">
-            <i class="fas fa-user-plus mr-2"></i>Generate Employee Account
+            <i class="fas fa-user-plus"></i>
+            Generate Employee Account
         </button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="card p-4">
-            <p class="text-sm text-gray-600">Accounts Generated</p>
-            <p class="text-2xl font-bold text-primary">
-                <?= $stats['totalAccounts'] ?>
-            </p>
-            <p class="text-xs text-gray-500">Total employees</p>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p class="text-sm text-gray-500 mb-1">Accounts Generated</p>
+            <p class="text-2xl font-bold text-gray-800"><?= $stats['totalAccounts'] ?></p>
+            <p class="text-xs text-gray-400 mt-1">Total employees</p>
         </div>
-        <div class="card p-4">
-            <p class="text-sm text-gray-600">Pending Onboarding</p>
-            <p class="text-2xl font-bold text-yellow-600">
-                <?= $stats['pending'] ?>
-            </p>
-            <p class="text-xs text-gray-500">Courses not started</p>
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p class="text-sm text-gray-500 mb-1">Pending Onboarding</p>
+            <p class="text-2xl font-bold text-gray-800"><?= $stats['pending'] ?></p>
+            <p class="text-xs text-gray-400 mt-1">Courses not started</p>
         </div>
-        <div class="card p-4">
-            <p class="text-sm text-gray-600">In Progress</p>
-            <p class="text-2xl font-bold text-blue-600">
-                <?= $stats['inProgress'] ?>
-            </p>
-            <p class="text-xs text-gray-500">Completing courses</p>
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p class="text-sm text-gray-500 mb-1">In Progress</p>
+            <p class="text-2xl font-bold text-gray-800"><?= $stats['inProgress'] ?></p>
+            <p class="text-xs text-gray-400 mt-1">Completing courses</p>
         </div>
-        <div class="card p-4">
-            <p class="text-sm text-gray-600">Onboarded</p>
-            <p class="text-2xl font-bold text-green-600">
-                <?= $stats['onboarded'] ?>
-            </p>
-            <p class="text-xs text-gray-500">All courses completed</p>
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p class="text-sm text-gray-500 mb-1">Onboarded</p>
+            <p class="text-2xl font-bold text-gray-800"><?= $stats['onboarded'] ?></p>
+            <p class="text-xs text-gray-400 mt-1">All courses completed</p>
         </div>
     </div>
 
     <!-- New Hires / Probationary Employees -->
-    <div class="card p-6 mb-6">
-        <h3 class="text-lg font-semibold mb-4">New Hires / Probationary Employees</h3>
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
-                    <tr class="border-b border-gray-200">
-                        <th class="text-left py-3">Employee ID</th>
-                        <th class="text-left py-3">Name</th>
-                        <th class="text-left py-3">Position</th>
-                        <th class="text-left py-3">Hired Date</th>
-                        <th class="text-left py-3">Onboarding Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($paginatedNewHires)): ?>
-                        <?php foreach ($paginatedNewHires as $employee): ?>
-                            <?php
-                            $onboardingStatus = $employee['onboarding_status'] ?? 'Onboarding';
-
-                            // Set badge color based on status
-                            $badgeClass = match ($onboardingStatus) {
-                                'Onboarded' => 'bg-green-100 text-green-800',
-                                'In Progress' => 'bg-blue-100 text-blue-800',
-                                default => 'bg-yellow-100 text-yellow-800',
-                            };
-                            ?>
-                            <tr class="border-b border-gray-100">
-                                <td class="py-3 font-medium"><?= htmlspecialchars($employee['employee_number']) ?></td>
-                                <td class="py-3 font-medium"><?= htmlspecialchars($employee['full_name']) ?></td>
-                                <td class="py-3"><?= htmlspecialchars($employee['position']) ?></td>
-                                <td class="py-3">
-                                    <?= date('M d, Y', strtotime($employee['hired_date'] ?? $employee['start_date'])) ?>
-                                </td>
-                                <td class="py-3">
-                                    <span class="status-badge <?= $badgeClass ?>"><?= $onboardingStatus ?></span>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm mb-6 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+            <h3 class="text-lg font-semibold text-gray-800">New Hires / Probationary Employees</h3>
+        </div>
+        <div class="p-6">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-100">
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Employee ID</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name
+                            </th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Position</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Hired
+                                Date</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Onboarding Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($paginatedNewHires)): ?>
+                            <?php foreach ($paginatedNewHires as $employee): ?>
+                                <?php
+                                $onboardingStatus = $employee['onboarding_status'] ?? 'Onboarding';
+                                $badgeClass = match ($onboardingStatus) {
+                                    'Onboarded' => 'bg-green-50 text-green-700 border border-green-200',
+                                    'In Progress' => 'bg-blue-50 text-blue-700 border border-blue-200',
+                                    default => 'bg-yellow-50 text-yellow-700 border border-yellow-200',
+                                };
+                                ?>
+                                <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
+                                    <td class="py-3 text-sm font-medium text-gray-800">
+                                        <?= htmlspecialchars($employee['employee_number']) ?>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-800"><?= htmlspecialchars($employee['full_name']) ?></td>
+                                    <td class="py-3 text-sm text-gray-600"><?= htmlspecialchars($employee['position']) ?></td>
+                                    <td class="py-3 text-sm text-gray-600">
+                                        <?= date('M d, Y', strtotime($employee['hired_date'] ?? $employee['start_date'])) ?>
+                                    </td>
+                                    <td class="py-3">
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium <?= $badgeClass ?>">
+                                            <?= $onboardingStatus ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-gray-500 text-sm">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <i class="fas fa-users text-gray-300 text-2xl"></i>
+                                        <p>No new hires found.</p>
+                                    </div>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="5" class="py-4 text-center text-gray-500">No new hires found.</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-            <?php if ($totalNewHirePages > 1): ?>
-                <div class="flex justify-end mt-4 space-x-2">
-                    <?php for ($i = 1; $i <= $totalNewHirePages; $i++): ?>
-                        <a href="?tab=onboarding&nh_page=<?= $i ?>"
-                            class="px-3 py-1 border rounded <?= $i === $nhPage ? 'bg-blue-500 text-white' : 'bg-white text-gray-700' ?>">
-                            <?= $i ?>
-                        </a>
-                    <?php endfor; ?>
-                </div>
-            <?php endif; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <?php if ($totalNewHirePages > 1): ?>
+                    <div class="flex justify-end items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-xs text-gray-500 mr-2">Page <?= $nhPage ?> of <?= $totalNewHirePages ?></p>
+                        <?php for ($i = 1; $i <= $totalNewHirePages; $i++): ?>
+                            <a href="?tab=onboarding&nh_page=<?= $i ?>"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg transition-colors duration-200
+                                <?= $i === $nhPage ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' ?>">
+                                <?= $i ?>
+                            </a>
+                        <?php endfor; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 
     <!-- Recent Accounts Generated -->
-    <div class="card p-6 mb-6" id="recentAccount">
-        <h3 class="text-lg font-semibold mb-4">Recent Employee Accounts</h3>
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
-                    <tr class="border-b border-gray-200">
-                        <th class="text-left py-3">Employee</th>
-                        <th class="text-left py-3">Username</th>
-                        <th class="text-left py-3">Position</th>
-                        <th class="text-left py-3">Account Created</th>
-                        <th class="text-left py-3">Status</th>
-                        <th class="text-left py-3">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($generatedAccounts)): ?>
-                        <?php foreach ($generatedAccounts as $account): ?>
-                            <tr class="border-b border-gray-100">
-                                <td class="py-3 font-medium">
-                                    <?= htmlspecialchars($account['full_name']) ?>
-                                </td>
-
-                                <td class="py-3">
-                                    <?= htmlspecialchars($account['username']) ?>
-                                </td>
-
-                                <td class="py-3">
-                                    <?= htmlspecialchars($account['position']) ?>
-                                </td>
-
-                                <td class="py-3">
-                                    <?= date('M d, Y', strtotime($account['generated_date'])) ?>
-                                </td>
-
-                                <td class="py-3">
-                                    <?php
-                                    $status = $account['account_status'] ?? 'Active';
-                                    $badgeClass = $status === 'Active'
-                                        ? 'bg-green-100 text-green-800'
-                                        : ($status === 'Inactive' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800');
-                                    ?>
-                                    <span class="status-badge <?= $badgeClass ?>">
-                                        <?= htmlspecialchars($status) ?>
-                                    </span>
-                                </td>
-
-
-                                <td class="py-3">
-                                    <button class="text-primary hover:text-primary-dark"
-                                        onclick="openModal('onboardingProgressModal<?= $account['applicant_id'] ?>')">
-                                        <i class="fas fa-eye mr-1"></i>View Progress
-                                    </button>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden" id="recentAccount">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+            <h3 class="text-lg font-semibold text-gray-800">Recent Employee Accounts</h3>
+        </div>
+        <div class="p-6">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-100">
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Employee</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Username</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Position</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Account Created</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status
+                            </th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($generatedAccounts)): ?>
+                            <?php foreach ($generatedAccounts as $account): ?>
+                                <?php
+                                $status = $account['account_status'] ?? 'Active';
+                                $badgeClass = $status === 'Active'
+                                    ? 'bg-green-50 text-green-700 border border-green-200'
+                                    : ($status === 'Inactive' ? 'bg-gray-50 text-gray-700 border border-gray-200' : 'bg-red-50 text-red-700 border border-red-200');
+                                ?>
+                                <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
+                                    <td class="py-3 text-sm font-medium text-gray-800">
+                                        <?= htmlspecialchars($account['full_name']) ?>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600">
+                                        <?= htmlspecialchars($account['username']) ?>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600">
+                                        <?= htmlspecialchars($account['position']) ?>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600">
+                                        <?= date('M d, Y', strtotime($account['generated_date'])) ?>
+                                    </td>
+                                    <td class="py-3">
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium <?= $badgeClass ?>">
+                                            <?= htmlspecialchars($status) ?>
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <button
+                                            class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1"
+                                            onclick="openModal('onboardingProgressModal<?= $account['applicant_id'] ?>')">
+                                            <i class="fas fa-eye text-xs"></i>
+                                            View Progress
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="py-8 text-center text-gray-500 text-sm">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <i class="fas fa-user-slash text-gray-300 text-2xl"></i>
+                                        <p>No employee accounts found.</p>
+                                    </div>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="6" class="py-4 text-center text-gray-500">
-                                No employee accounts found.
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-            <?php if ($totalPages > 1): ?>
-                <div class="flex justify-end mt-4 space-x-2">
-                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                        <a href="?tab=onboarding&page=<?= $i ?>#recentAccount"
-                            class="px-3 py-1 border rounded <?= $i == $page ? 'bg-blue-500 text-white' : 'bg-white text-gray-700' ?>">
-                            <?= $i ?>
-                        </a>
-                    <?php endfor; ?>
-                </div>
-            <?php endif; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <?php if ($totalPages > 1): ?>
+                    <div class="flex justify-end items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-xs text-gray-500 mr-2">Page <?= $page ?> of <?= $totalPages ?></p>
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            <a href="?tab=onboarding&page=<?= $i ?>#recentAccount"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg transition-colors duration-200
+                                <?= $i == $page ? 'bg-gray-800 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' ?>">
+                                <?= $i ?>
+                            </a>
+                        <?php endfor; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
-
 </div>

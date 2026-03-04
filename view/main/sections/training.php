@@ -1,268 +1,293 @@
-<!-- Complete Training Modal -->
-<div id="completeTrainingModal" class="modal">
-    <div class="modal-content">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-semibold">Complete Training & Record Results</h3>
-            <button onclick="closeModal('completeTrainingModal')" class="text-gray-500 hover:text-gray-700">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        <form class="space-y-4">
-            <!-- Training Info -->
-            <div class="bg-blue-50 p-4 rounded-lg">
-                <p class="font-medium">Customer Service Excellence Training</p>
-                <p class="text-sm text-gray-600">Mar 15-16, 2026 • Trainer: Sarah Johnson</p>
-            </div>
-
-            <!-- Record Results per Employee -->
-            <div>
-                <label class="block text-sm font-medium mb-2">Training Results</label>
-                <div class="space-y-3 max-h-60 overflow-y-auto">
-                    <div class="border rounded-lg p-3">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="font-medium">Grace Lee</p>
-                                <p class="text-sm text-gray-600">Server</p>
-                            </div>
-                            <select class="border rounded p-1 text-sm">
-                                <option>Select Result</option>
-                                <option>Passed</option>
-                                <option>Failed</option>
-                                <option>Incomplete</option>
-                                <option>Certified</option>
-                            </select>
-                        </div>
-                        <div class="mt-2">
-                            <label class="text-xs block">Assessment Score (%)</label>
-                            <input type="number" class="border rounded p-1 text-sm w-20" min="0" max="100">
-                        </div>
-                        <div class="mt-2">
-                            <label class="text-xs block">Trainer Comments</label>
-                            <textarea class="border rounded p-1 text-sm w-full" rows="2"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="border rounded-lg p-3">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="font-medium">James Wilson</p>
-                                <p class="text-sm text-gray-600">Server</p>
-                            </div>
-                            <select class="border rounded p-1 text-sm">
-                                <option>Select Result</option>
-                                <option>Passed</option>
-                                <option>Failed</option>
-                                <option>Incomplete</option>
-                                <option>Certified</option>
-                            </select>
-                        </div>
-                        <div class="mt-2">
-                            <label class="text-xs block">Assessment Score (%)</label>
-                            <input type="number" class="border rounded p-1 text-sm w-20" min="0" max="100">
-                        </div>
-                        <div class="mt-2">
-                            <label class="text-xs block">Trainer Comments</label>
-                            <textarea class="border rounded p-1 text-sm w-full" rows="2"></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Certificate Upload (for certification type) -->
-            <div>
-                <label class="block text-sm font-medium mb-1">Upload Certificates (if applicable)</label>
-                <input type="file" class="profile-input w-full p-2 border rounded" multiple accept=".pdf,.jpg">
-            </div>
-
-            <!-- Update Competency -->
-            <div class="border-t pt-4">
-                <div class="flex items-start gap-3">
-                    <input type="checkbox" id="updateCompetency" class="w-4 h-4 mt-1" checked>
-                    <div>
-                        <label for="updateCompetency" class="text-sm font-medium">Update employee competency
-                            records</label>
-                        <p class="text-xs text-gray-500">This will automatically update competency levels based on
-                            training results</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex justify-end gap-2 pt-4">
-                <button type="button" class="px-4 py-2 bg-gray-200 rounded-lg"
-                    onclick="closeModal('completeTrainingModal')">Cancel</button>
-                <button type="button" class="btn-primary px-4 py-2" onclick="completeTraining()">
-                    <i class="fas fa-save mr-2"></i>Save Results & Update Competency
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <!-- Main Training Management Content -->
 <div class="tab-content" id="training-content">
-    <div class="flex justify-between items-center mb-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
             <h2 class="text-2xl font-semibold text-gray-800">Training Management</h2>
-            <p class="text-gray-600 mt-1">Manage training programs based on competency gaps</p>
+            <p class="text-gray-500 text-sm mt-1">Manage training programs based on competency gaps</p>
         </div>
         <button class="btn-primary" onclick="openModal('trainingModal')">
-            <i class="fas fa-plus mr-2"></i>New Training Program
+            <i class="fas fa-plus"></i>
+            New Training Program
         </button>
     </div>
 
-    <!-- Training Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="card p-4">
-            <p class="text-sm text-gray-600">Active Trainings</p>
-            <p class="text-2xl font-bold">6</p>
+    <!-- Training Overview Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Active Trainings</p>
+            <p class="text-2xl font-bold text-gray-800"><?= $trainingStats['active_trainings'] ?? 0 ?></p>
         </div>
-        <div class="card p-4">
-            <p class="text-sm text-gray-600">Internal</p>
-            <p class="text-2xl font-bold">4</p>
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Internal</p>
+            <p class="text-2xl font-bold text-gray-800"><?= $trainingStats['internal_count'] ?? 0 ?></p>
         </div>
-        <div class="card p-4">
-            <p class="text-sm text-gray-600">External</p>
-            <p class="text-2xl font-bold">1</p>
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">External</p>
+            <p class="text-2xl font-bold text-gray-800"><?= $trainingStats['external_count'] ?? 0 ?></p>
         </div>
-        <div class="card p-4">
-            <p class="text-sm text-gray-600">Certifications</p>
-            <p class="text-2xl font-bold">1</p>
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Certifications</p>
+            <p class="text-2xl font-bold text-gray-800"><?= $trainingStats['certification_count'] ?? 0 ?></p>
         </div>
-    </div>
-
-    <!-- Trainings by Type -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <!-- Internal Trainings -->
-        <div class="card p-6">
-            <h3 class="font-semibold mb-3 flex items-center">
-                <i class="fas fa-building mr-2 text-blue-600"></i>
-                Internal Trainings
-            </h3>
-            <div class="space-y-3">
-                <div class="border-l-4 border-blue-500 pl-3">
-                    <p class="font-medium">New Hire Orientation</p>
-                    <p class="text-sm text-gray-600">Trainer: Sarah Johnson</p>
-                    <p class="text-xs text-gray-500">Mar 15, 2026 • 8 attendees</p>
-                </div>
-                <div class="border-l-4 border-blue-500 pl-3">
-                    <p class="font-medium">POS System Training</p>
-                    <p class="text-sm text-gray-600">Trainer: Mike Chen</p>
-                    <p class="text-xs text-gray-500">Mar 18, 2026 • 5 attendees</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- External Trainings -->
-        <div class="card p-6">
-            <h3 class="font-semibold mb-3 flex items-center">
-                <i class="fas fa-globe mr-2 text-green-600"></i>
-                External Trainings
-            </h3>
-            <div class="space-y-3">
-                <div class="border-l-4 border-green-500 pl-3">
-                    <p class="font-medium">Leadership Workshop</p>
-                    <p class="text-sm text-gray-600">Provider: Leadership Academy</p>
-                    <p class="text-xs text-gray-500">Mar 20-22, 2026 • 3 attendees</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Certifications -->
-        <div class="card p-6">
-            <h3 class="font-semibold mb-3 flex items-center">
-                <i class="fas fa-certificate mr-2 text-purple-600"></i>
-                Certifications
-            </h3>
-            <div class="space-y-3">
-                <div class="border-l-4 border-purple-500 pl-3">
-                    <p class="font-medium">Food Safety Manager</p>
-                    <p class="text-sm text-gray-600">Provider: ServSafe</p>
-                    <p class="text-xs text-gray-500">Certification #: SERV-2026-123</p>
-                </div>
-            </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Pending Assessment</p>
+            <p class="text-2xl font-bold text-yellow-600"><?= $trainingStats['pending_assessment'] ?? 0 ?></p>
         </div>
     </div>
 
     <!-- Training Schedule Table -->
-    <div class="card p-6">
-        <h3 class="text-lg font-semibold mb-4">Training Schedule</h3>
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
-                    <tr class="border-b border-gray-200">
-                        <th class="text-left py-3">Training Title</th>
-                        <th class="text-left py-3">Type</th>
-                        <th class="text-left py-3">Provider/Trainer</th>
-                        <th class="text-left py-3">Schedule</th>
-                        <th class="text-left py-3">Attendees</th>
-                        <th class="text-left py-3">Status</th>
-                        <th class="text-left py-3">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="border-b border-gray-100">
-                        <td class="py-3">Customer Service Excellence</td>
-                        <td class="py-3"><span class="status-badge bg-blue-100 text-blue-800">Internal</span></td>
-                        <td class="py-3">Sarah Johnson</td>
-                        <td class="py-3">Mar 15-16, 9am-5pm</td>
-                        <td class="py-3">12</td>
-                        <td class="py-3"><span class="status-badge bg-green-100 text-green-800">Scheduled</span></td>
-                        <td class="py-3">
-                            <button class="text-primary hover:text-primary-dark"
-                                onclick="openModal('completeTrainingModal')">
-                                <i class="fas fa-check-circle mr-1"></i>Complete
-                            </button>
-                        </td>
-                    </tr>
-                    <tr class="border-b border-gray-100">
-                        <td class="py-3">Food Safety Certification</td>
-                        <td class="py-3"><span class="status-badge bg-purple-100 text-purple-800">Certification</span>
-                        </td>
-                        <td class="py-3">ServSafe</td>
-                        <td class="py-3">Mar 25, 2026</td>
-                        <td class="py-3">8</td>
-                        <td class="py-3"><span class="status-badge bg-yellow-100 text-yellow-800">Pending</span></td>
-                        <td class="py-3">
-                            <button class="text-primary hover:text-primary-dark" disabled>Not Started</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-800">Training Schedule</h3>
+
+            <!-- Filter and Pagination -->
+            <div class="flex items-center gap-4">
+                <select
+                    class="border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-gray-200 focus:border-gray-400"
+                    onchange="window.location.href = '?tab=training&training_filter=' + this.value + '&training_page=1'">
+                    <option value="all" <?= $trainingFilter == 'all' ? 'selected' : '' ?>>All Trainings</option>
+                    <option value="scheduled" <?= $trainingFilter == 'scheduled' ? 'selected' : '' ?>>Scheduled</option>
+                    <option value="completed" <?= $trainingFilter == 'completed' ? 'selected' : '' ?>>Completed</option>
+                    <option value="pending" <?= $trainingFilter == 'pending' ? 'selected' : '' ?>>Pending Assessment
+                    </option>
+                </select>
+
+                <?php if ($totalTrainingPages > 1): ?>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600">Page <?= $trainingPage ?> of <?= $totalTrainingPages ?></span>
+                        <div class="flex gap-1">
+                            <?php if ($trainingPage > 1): ?>
+                                <a href="?tab=training&training_filter=<?= $trainingFilter ?>&training_page=<?= $trainingPage - 1 ?>"
+                                    class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 text-sm transition-colors">Prev</a>
+                            <?php endif; ?>
+                            <?php if ($trainingPage < $totalTrainingPages): ?>
+                                <a href="?tab=training&training_filter=<?= $trainingFilter ?>&training_page=<?= $trainingPage + 1 ?>"
+                                    class="px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 text-sm transition-colors">Next</a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-100">
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Training Title</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Employee</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Type
+                            </th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Provider</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Schedule</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status
+                            </th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Assessment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($trainingSchedule)): ?>
+                            <?php foreach ($trainingSchedule as $training):
+                                // Determine type badge color
+                                $typeClass = '';
+                                switch ($training['training_type']) {
+                                    case 'internal':
+                                        $typeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+                                        break;
+                                    case 'external':
+                                        $typeClass = 'bg-purple-50 text-purple-700 border-purple-200';
+                                        break;
+                                    case 'certification':
+                                        $typeClass = 'bg-green-50 text-green-700 border-green-200';
+                                        break;
+                                }
+
+                                // Determine status badge color
+                                $statusClass = '';
+                                switch ($training['status']) {
+                                    case 'Scheduled':
+                                        $statusClass = 'bg-green-50 text-green-700 border-green-200';
+                                        break;
+                                    case 'Completed':
+                                        $statusClass = 'bg-gray-100 text-gray-700 border-gray-200';
+                                        break;
+                                    case 'Missed':
+                                        $statusClass = 'bg-red-50 text-red-700 border-red-200';
+                                        break;
+                                }
+
+                                // Determine assessment badge
+                                $assessmentClass = '';
+                                $assessmentText = '';
+                                switch ($training['assessment_status']) {
+                                    case 'completed':
+                                        $assessmentClass = 'bg-green-50 text-green-700 border-green-200';
+                                        $assessmentText = 'Passed';
+                                        break;
+                                    case 'failed':
+                                        $assessmentClass = 'bg-red-50 text-red-700 border-red-200';
+                                        $assessmentText = 'Failed';
+                                        break;
+                                    case 'pending':
+                                        $assessmentClass = 'bg-yellow-50 text-yellow-700 border-yellow-200';
+                                        $assessmentText = 'Pending';
+                                        break;
+                                    default:
+                                        $assessmentClass = 'bg-gray-50 text-gray-500 border-gray-200';
+                                        $assessmentText = 'Not Started';
+                                }
+
+                                // Format schedule
+                                $scheduleText = date('M j', strtotime($training['start_date']));
+                                if ($training['end_date'] && $training['end_date'] != $training['start_date']) {
+                                    $scheduleText .= ' - ' . date('M j, Y', strtotime($training['end_date']));
+                                } else {
+                                    $scheduleText .= ', ' . date('Y', strtotime($training['start_date']));
+                                }
+                                if ($training['start_time']) {
+                                    $scheduleText .= ' · ' . date('g:i A', strtotime($training['start_time']));
+                                }
+                                ?>
+                                <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
+                                    <td class="py-3">
+                                        <p class="text-sm font-medium text-gray-800"><?= htmlspecialchars($training['title']) ?>
+                                        </p>
+                                        <?php if ($training['competency_name']): ?>
+                                            <p class="text-xs text-gray-400 mt-0.5">Competency:
+                                                <?= htmlspecialchars($training['competency_name']) ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="py-3">
+                                        <p class="text-sm font-medium text-gray-800">
+                                            <?= htmlspecialchars($training['employee_name'] ?? 'N/A') ?>
+                                        </p>
+                                        <p class="text-xs text-gray-400">
+                                            <?= htmlspecialchars($training['employee_position'] ?? '') ?>
+                                        </p>
+                                    </td>
+                                    <td class="py-3">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border <?= $typeClass ?>">
+                                            <?= ucfirst($training['training_type']) ?>
+                                        </span>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600">
+                                        <?= htmlspecialchars($training['provider_name'] ?? 'N/A') ?>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600"><?= $scheduleText ?></td>
+                                    <td class="py-3">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border <?= $statusClass ?>">
+                                            <?= $training['status'] ?>
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border <?= $assessmentClass ?>">
+                                            <?= $assessmentText ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" class="py-12 text-center text-gray-500">
+                                    <div class="flex flex-col items-center">
+                                        <i class="fas fa-calendar-alt text-5xl mb-3 text-gray-300"></i>
+                                        <p class="text-lg font-medium">No trainings found</p>
+                                        <p class="text-sm">No training schedules available for the selected filter</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Bottom Pagination -->
+            <?php if ($totalTrainingPages > 1): ?>
+                <div class="flex justify-center mt-6 gap-2">
+                    <?php for ($i = 1; $i <= $totalTrainingPages; $i++): ?>
+                        <a href="?tab=training&training_filter=<?= $trainingFilter ?>&training_page=<?= $i ?>" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors
+                       <?= $i == $trainingPage
+                           ? 'bg-gray-800 text-white'
+                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200' ?>">
+                            <?= $i ?>
+                        </a>
+                    <?php endfor; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
-    <!-- Completed Trainings & Results -->
-    <div class="card p-6 mt-6">
-        <h3 class="text-lg font-semibold mb-4">Completed Trainings & Results</h3>
-        <div class="space-y-4">
-            <div class="border rounded-lg p-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="font-medium">Food Safety Refresher</p>
-                        <p class="text-sm text-gray-600">Completed: Mar 10, 2026 • Trainer: Lisa Wong</p>
-                    </div>
-                    <span class="status-badge bg-green-100 text-green-800">Completed</span>
-                </div>
+    <?php if (!empty($completedTrainings)): ?>
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mt-6">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                <h3 class="text-lg font-semibold text-gray-800">Completed Trainings & Results</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <?php foreach ($completedTrainings as $training):
+                        $assessmentResult = $training['assessment_status'] == 'completed' ? 'Passed' : 'Failed';
+                        $resultClass = $training['assessment_status'] == 'completed' ? 'text-green-600' : 'text-red-600';
+                        ?>
+                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow duration-200">
+                            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                <div>
+                                    <p class="font-medium text-gray-800"><?= htmlspecialchars($training['title']) ?></p>
+                                    <div class="flex items-center gap-3 mt-1">
+                                        <span class="text-xs text-gray-500"><i class="far fa-calendar mr-1"></i>Completed:
+                                            <?= date('M j, Y', strtotime($training['end_date'] ?? $training['start_date'])) ?></span>
+                                        <span class="text-gray-300">•</span>
+                                        <span class="text-xs text-gray-500"><i class="far fa-user mr-1"></i>Trainer:
+                                            <?= htmlspecialchars($training['provider_name'] ?? 'N/A') ?></span>
+                                    </div>
+                                </div>
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <?= $training['assessment_status'] == 'completed' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200' ?>">
+                                    <?= $assessmentResult ?>
+                                </span>
+                            </div>
 
-                <!-- Results per employee -->
-                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div class="text-sm flex justify-between items-center p-2 bg-gray-50 rounded">
-                        <span>Grace Lee</span>
-                        <span class="font-medium text-green-600">Passed (92%)</span>
-                    </div>
-                    <div class="text-sm flex justify-between items-center p-2 bg-gray-50 rounded">
-                        <span>John Smith</span>
-                        <span class="font-medium text-green-600">Passed (88%)</span>
-                    </div>
-                </div>
+                            <!-- Results per employee -->
+                            <div class="mt-3">
+                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100">
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
+                                            <?= strtoupper(substr($training['employee_name'], 0, 2)) ?>
+                                        </span>
+                                        <span
+                                            class="text-sm text-gray-700"><?= htmlspecialchars($training['employee_name']) ?></span>
+                                        <span
+                                            class="text-xs text-gray-400">(<?= htmlspecialchars($training['employee_position']) ?>)</span>
+                                    </div>
+                                    <span class="text-xs font-medium <?= $resultClass ?>">
+                                        <?= $assessmentResult ?>
+                                    </span>
+                                </div>
+                            </div>
 
-                <!-- Competency Update -->
-                <div class="mt-2 text-xs text-gray-500 flex items-center">
-                    <i class="fas fa-arrow-up text-green-500 mr-1"></i>
-                    Competency levels updated: Customer Service (2 → 3), Food Safety (3 → 4)
+                            <!-- Competency Update -->
+                            <?php if ($training['competency_id'] && $training['assessment_status'] == 'completed'): ?>
+                                <div class="mt-3 p-2 bg-gray-50 rounded-lg text-xs text-gray-500 flex items-center gap-2">
+                                    <i class="fas fa-arrow-up text-green-500"></i>
+                                    <span>Competency levels updated: <?= htmlspecialchars($training['competency_name']) ?> (Level
+                                        increased)</span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>
-    </div>
+    <?php endif; ?>
 </div>
