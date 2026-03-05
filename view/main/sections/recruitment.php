@@ -79,7 +79,7 @@
                             <input type="hidden" name="job_id" value="<?= $job['id'] ?>">
                             <button type="submit" name="delete-jobBtn"
                                 class="w-full inline-flex items-center justify-center px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors duration-200">
-                                <i class="fas fa-trash mr-2 text-gray-500"></i>
+                                <i class="fas fa-trash mr-2 text-red-600"></i>
                                 Delete
                             </button>
                         </form>

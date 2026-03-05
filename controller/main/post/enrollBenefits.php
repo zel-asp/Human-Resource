@@ -14,17 +14,18 @@ if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
 
 // Required fields validation
 if (
-    empty($_POST['employee_id']) || empty($_POST['benefit_type']) ||
-    empty($_POST['provider_id']) || empty($_POST['effective_date'])
+    empty($_POST['employee_ids']) || !is_array($_POST['employee_ids']) ||
+    empty($_POST['benefit_type']) ||
+    empty($_POST['provider_id']) ||
+    empty($_POST['effective_date'])
 ) {
-    $_SESSION['error'][] = 'Please fill in all required fields';
+    $_SESSION['error'][] = 'Please select at least one employee and fill in all required fields';
     header('Location: /main?tab=hmo');
     exit();
 }
 
 try {
-    // Sanitize input
-    $employee_id = filter_var($_POST['employee_id'], FILTER_SANITIZE_NUMBER_INT);
+    // Sanitize common inputs
     $benefit_type = filter_var($_POST['benefit_type'], FILTER_SANITIZE_STRING);
     $provider_id = filter_var($_POST['provider_id'], FILTER_SANITIZE_NUMBER_INT);
     $effective_date = $_POST['effective_date'];
@@ -42,16 +43,51 @@ try {
         ? filter_var($_POST['dependents'], FILTER_SANITIZE_STRING)
         : null;
 
+    // Sanitize employee IDs
+    $employee_ids = array_map(function ($id) {
+        return filter_var($id, FILTER_SANITIZE_NUMBER_INT);
+    }, $_POST['employee_ids']);
+
+    // Remove any empty or invalid IDs
+    $employee_ids = array_filter($employee_ids, function ($id) {
+        return is_numeric($id) && $id > 0;
+    });
+
+    if (empty($employee_ids)) {
+        $_SESSION['error'][] = 'Invalid employee selection';
+        header('Location: /main?tab=hmo');
+        exit();
+    }
+
     $db->beginTransaction();
 
-    $db->query(
-        "INSERT INTO employee_benefits 
+    // Prepare the insert query once
+    $insertQuery = "INSERT INTO employee_benefits 
         (employee_id, benefit_type, provider_id, effective_date, expiry_date, 
         coverage_amount, monthly_premium, dependents, created_at, updated_at) 
         VALUES 
         (:employee_id, :benefit_type, :provider_id, :effective_date, :expiry_date,
-        :coverage_amount, :monthly_premium, :dependents, NOW(), NOW())",
-        [
+        :coverage_amount, :monthly_premium, :dependents, NOW(), NOW())";
+
+    // Insert for each selected employee
+    $successCount = 0;
+    foreach ($employee_ids as $employee_id) {
+        $existing = $db->query(
+            "SELECT id FROM employee_benefits 
+            WHERE employee_id = :employee_id 
+            AND benefit_type = :benefit_type 
+            AND (expiry_date IS NULL OR expiry_date >= CURDATE())",
+            [
+                'employee_id' => $employee_id,
+                'benefit_type' => $benefit_type
+            ]
+        )->find();
+
+        if ($existing) {
+            continue;
+        }
+
+        $result = $db->query($insertQuery, [
             'employee_id' => $employee_id,
             'benefit_type' => $benefit_type,
             'provider_id' => $provider_id,
@@ -60,17 +96,36 @@ try {
             'coverage_amount' => $coverage_amount,
             'monthly_premium' => $monthly_premium,
             'dependents' => $dependents
-        ]
-    );
+        ]);
 
-    $db->commit();
-    $_SESSION['success'][] = 'Employee successfully enrolled in benefits';
+        if ($result) {
+            $successCount++;
+        }
+
+        if ($successCount > 0) {
+            $placeholders = implode(',', array_fill(0, count($employee_ids), '?'));
+            $db->query(
+                "UPDATE employees SET benefit_status = 'enrolled' WHERE id IN ($placeholders)",
+                $employee_ids
+            );
+        }
+
+    }
+
+    if ($successCount > 0) {
+        $db->commit();
+        $_SESSION['success'][] = $successCount . ' employee(s) successfully enrolled in benefits';
+    } else {
+        $db->rollBack();
+        $_SESSION['error'][] = 'No employees were enrolled. They may already have active benefits of this type.';
+    }
 
 } catch (PDOException $e) {
-    if ($db->inTransaction())
+    if ($db->inTransaction()) {
         $db->rollBack();
+    }
     error_log("Benefit enrollment error: " . $e->getMessage());
-    $_SESSION['error'][] = 'Failed to enroll employee in benefits. Please try again.';
+    $_SESSION['error'][] = 'Failed to enroll employees in benefits. Please try again.';
 }
 
 header('Location: /main?tab=hmo');

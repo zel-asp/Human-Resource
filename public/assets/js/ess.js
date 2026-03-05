@@ -2,6 +2,20 @@
     const body = document.body;
 
     // ========================
+    // GLOBAL FUNCTIONS (accessible to inline HTML)
+    // ========================
+
+    // Sidebar toggle function - MAKE THIS GLOBAL
+    window.toggleSidebar = function () {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        if (sidebar && overlay) {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+    };
+
+    // ========================
     // MODAL FUNCTIONS
     // ========================
     function closeAllModals() {
@@ -10,35 +24,51 @@
     }
 
     // Expose openModal globally
-    window.openModal = function (id) {
+    window.openModal = function (modalId) {
         closeAllModals();
-        const modal = document.getElementById(id);
+        const modal = document.getElementById(modalId);
         if (modal) {
             modal.classList.remove('hidden');
+            modal.classList.add('flex');
             body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
 
             // Update URL
             const url = new URL(window.location);
-            url.searchParams.set('modal', id);
+            url.searchParams.set('modal', modalId);
             window.history.replaceState({}, '', url);
         }
     };
 
     // Expose closeModal globally
-    window.closeModal = function (id) {
-        const modal = document.getElementById(id);
-        if (modal) modal.classList.add('hidden');
-        if (!document.querySelector('[id$="Modal"]:not(.hidden)')) {
-            body.classList.remove('modal-open');
+    window.closeModal = function (modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
 
-            // Remove modal from URL
-            const url = new URL(window.location);
-            url.searchParams.delete('modal');
-            window.history.replaceState({}, '', url);
+            if (!document.querySelector('[id$="Modal"]:not(.hidden)')) {
+                body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+
+                // Remove modal from URL
+                const url = new URL(window.location);
+                url.searchParams.delete('modal');
+                window.history.replaceState({}, '', url);
+            }
         }
     };
 
-    // Expose switchTab globally (optional, but good for consistency)
+    // Close modal when clicking outside
+    window.closeModalOnOutsideClick = function (event, modalId) {
+        if (event.target === event.currentTarget) {
+            closeModal(modalId);
+        }
+    };
+
+    // ========================
+    // TAB FUNCTIONS
+    // ========================
     window.switchTab = function (tabName) {
         const requestsPanel = document.getElementById('requestsPanel');
         const tasksPanel = document.getElementById('tasksPanel');
@@ -52,66 +82,71 @@
         tasksPanel.classList.add('hidden');
 
         // Reset button classes
-        requestsBtn.classList.remove('tab-active');
-        requestsBtn.classList.add('tab-inactive');
-        tasksBtn.classList.remove('tab-active');
-        tasksBtn.classList.add('tab-inactive');
+        requestsBtn.classList.remove('border-primary', 'text-primary');
+        requestsBtn.classList.add('text-gray-500');
+        tasksBtn.classList.remove('border-primary', 'text-primary');
+        tasksBtn.classList.add('text-gray-500');
 
         // Show selected panel
         if (tabName === 'tasks') {
             tasksPanel.classList.remove('hidden');
-            tasksBtn.classList.remove('tab-inactive');
-            tasksBtn.classList.add('tab-active');
+            tasksBtn.classList.add('border-primary', 'text-primary');
+            tasksBtn.classList.remove('text-gray-500');
         } else {
             requestsPanel.classList.remove('hidden');
-            requestsBtn.classList.remove('tab-inactive');
-            requestsBtn.classList.add('tab-active');
+            requestsBtn.classList.add('border-primary', 'text-primary');
+            requestsBtn.classList.remove('text-gray-500');
         }
 
-        // Update URL - preserve existing parameters
+        // Store the dashboard tab preference in localStorage
+        localStorage.setItem('dashboardSubTab', tabName);
+
+        // Update URL without reload
         const url = new URL(window.location);
-        url.searchParams.set('tab', tabName);
-
-        // Preserve page parameter if it exists
-        const currentPage = url.searchParams.get('page');
-        if (currentPage) {
-            url.searchParams.set('page', currentPage);
-        }
-
-        // Preserve modal parameter if it exists
-        const currentModal = url.searchParams.get('modal');
-        if (currentModal) {
-            url.searchParams.set('modal', currentModal);
-        }
-
+        url.searchParams.set('subtab', tabName);
         window.history.replaceState({}, '', url);
     };
 
-    // ========================
-    // INITIALIZE
-    // ========================
+    // Initialize everything when DOM is loaded
     document.addEventListener('DOMContentLoaded', function () {
+        // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const tab = urlParams.get('tab');
         const modal = urlParams.get('modal');
+        const subtab = urlParams.get('subtab') || localStorage.getItem('dashboardSubTab') || 'requests';
 
-        console.log('DOM Loaded - URL params:', { tab, modal }); // Debug log
+        console.log('DOM Loaded - URL params:', { tab, modal, subtab });
 
-        // Set initial tab
-        window.switchTab(tab === 'tasks' ? 'tasks' : 'requests');
+        // Setup dashboard tabs if we're on the dashboard
+        if (tab === 'dashboard' || !tab) {
+            const requestsBtn = document.getElementById('tabRequestsBtn');
+            const tasksBtn = document.getElementById('tabTasksBtn');
 
-        // Open modal if specified
+            if (requestsBtn) {
+                requestsBtn.removeAttribute('onclick');
+                requestsBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    window.switchTab('requests');
+                });
+            }
+
+            if (tasksBtn) {
+                tasksBtn.removeAttribute('onclick');
+                tasksBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    window.switchTab('tasks');
+                });
+            }
+
+            // Restore the last used dashboard tab
+            window.switchTab(subtab);
+        }
+
+        // Open modal if specified in URL
         if (modal) {
-            console.log('Attempting to open modal:', modal); // Debug log
+            console.log('Attempting to open modal:', modal);
             setTimeout(() => {
-                const modalEl = document.getElementById(modal);
-                if (modalEl) {
-                    console.log('Modal found, opening...'); // Debug log
-                    modalEl.classList.remove('hidden');
-                    body.classList.add('modal-open');
-                } else {
-                    console.log('Modal not found:', modal); // Debug log
-                }
+                window.openModal(modal);
             }, 200);
         }
 
@@ -119,46 +154,44 @@
         // EVENT LISTENERS
         // ========================
 
-        // Modal triggers - use the global functions
+        // Modal triggers
         document.getElementById('openProfileModalBtn')?.addEventListener('click', () => window.openModal('profileModal'));
         document.getElementById('openLeaveModalBtn')?.addEventListener('click', () => window.openModal('leaveModal'));
         document.getElementById('openAttendanceModalBtn')?.addEventListener('click', () => window.openModal('attendanceModal'));
         document.getElementById('openPayslipModalBtn')?.addEventListener('click', () => window.openModal('payslipModal'));
         document.getElementById('openSettingsModalBtn')?.addEventListener('click', () => window.openModal('settingsModal'));
 
-        // View all triggers
-        document.getElementById('viewAllRequestsBtn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.openModal('viewAllRequestsModal');
-        });
-
-        document.getElementById('viewAllTasksBtn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.openModal('viewAllTasksModal');
-        });
-
-        // Tab buttons
-        document.getElementById('tabRequestsBtn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.switchTab('requests');
-        });
-
-        document.getElementById('tabTasksBtn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.switchTab('tasks');
-        });
-
-        // Close modal buttons
-        document.querySelectorAll('.close-modal').forEach(btn => {
-            btn.addEventListener('click', function () {
-                window.closeModal(this.getAttribute('data-modal'));
+        // Setup modal close buttons
+        document.querySelectorAll('.close-modal, [data-close-modal]').forEach(button => {
+            button.addEventListener('click', function () {
+                const modal = this.closest('[id$="Modal"]');
+                if (modal) {
+                    window.closeModal(modal.id);
+                }
             });
         });
 
-        // Close modal when clicking outside
-        document.querySelectorAll('[id$="Modal"]').forEach(modal => {
-            modal.addEventListener('click', function (e) {
-                if (e.target === modal) window.closeModal(this.id);
+        // Close sidebar when clicking on main content on mobile
+        const mainContent = document.querySelector('main');
+        if (mainContent) {
+            mainContent.addEventListener('click', function () {
+                if (window.innerWidth < 1024) {
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.getElementById('overlay');
+                    if (sidebar && sidebar.classList.contains('open')) {
+                        sidebar.classList.remove('open');
+                        overlay.classList.remove('open');
+                    }
+                }
+            });
+        }
+
+        // Setup modal backdrop clicks
+        document.querySelectorAll('.modal-backdrop, [data-modal-backdrop], [id$="Modal"]').forEach(backdrop => {
+            backdrop.addEventListener('click', function (e) {
+                if (e.target === this) {
+                    window.closeModal(this.id);
+                }
             });
         });
     });

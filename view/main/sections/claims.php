@@ -5,10 +5,6 @@
             <h2 class="text-2xl font-semibold text-gray-800">Claims & Reimbursement</h2>
             <p class="text-gray-500 text-sm mt-1">Manage employee expense claims and reimbursements</p>
         </div>
-        <button class="btn-primary" onclick="openModal('newClaimModal')">
-            <i class="fas fa-plus"></i>
-            New Claim
-        </button>
     </div>
 
     <!-- Stats Cards -->
@@ -16,8 +12,8 @@
         <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Pending Claims</p>
             <div class="flex items-baseline justify-between">
-                <p class="text-2xl font-bold text-gray-800">8</p>
-                <span class="text-sm text-gray-500">₱24.5K total</span>
+                <p class="text-2xl font-bold text-gray-800"><?= $claimsPendingCount ?></p>
+                <span class="text-sm text-gray-500">₱<?= number_format($claimsPendingTotal) ?> total</span>
             </div>
             <p class="text-xs text-gray-400 mt-1">Awaiting review</p>
         </div>
@@ -25,8 +21,8 @@
         <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Approved</p>
             <div class="flex items-baseline justify-between">
-                <p class="text-2xl font-bold text-gray-800">15</p>
-                <span class="text-sm text-gray-500">₱45.2K total</span>
+                <p class="text-2xl font-bold text-gray-800"><?= $claimsApprovedCount ?></p>
+                <span class="text-sm text-gray-500">₱<?= number_format($claimsApprovedTotal) ?> total</span>
             </div>
             <p class="text-xs text-gray-400 mt-1">Ready for processing</p>
         </div>
@@ -34,10 +30,39 @@
         <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Processed This Month</p>
             <div class="flex items-baseline justify-between">
-                <p class="text-2xl font-bold text-gray-800">23</p>
-                <span class="text-sm text-gray-500">₱67.8K total</span>
+                <p class="text-2xl font-bold text-gray-800"><?= $claimsProcessedCount ?></p>
+                <span class="text-sm text-gray-500">₱<?= number_format($claimsProcessedTotal) ?> total</span>
             </div>
             <p class="text-xs text-gray-400 mt-1">Successfully completed</p>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-6">
+        <div class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">Filter by:</span>
+                <select name="claims_status" onchange="applyClaimsFilter()"
+                    class="text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                    <option value="all" <?= $claimsStatusFilter == 'all' ? 'selected' : '' ?>>All Status</option>
+                    <option value="Pending" <?= $claimsStatusFilter == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                    <option value="Approved" <?= $claimsStatusFilter == 'Approved' ? 'selected' : '' ?>>Approved</option>
+                    <option value="Paid" <?= $claimsStatusFilter == 'Paid' ? 'selected' : '' ?>>Paid</option>
+                    <option value="Rejected" <?= $claimsStatusFilter == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+                </select>
+                <select name="claims_date" onchange="applyClaimsFilter()"
+                    class="text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                    <option value="30" <?= $claimsDateFilter == '30' ? 'selected' : '' ?>>Last 30 days</option>
+                    <option value="90" <?= $claimsDateFilter == '90' ? 'selected' : '' ?>>Last 3 months</option>
+                    <option value="180" <?= $claimsDateFilter == '180' ? 'selected' : '' ?>>Last 6 months</option>
+                    <option value="365" <?= $claimsDateFilter == '365' ? 'selected' : '' ?>>This year</option>
+                </select>
+            </div>
+            <?php if ($claimsStatusFilter != 'all' || $claimsDateFilter != '30'): ?>
+                <a href="?tab=claims&claims_page=1" class="text-sm text-red-600 hover:text-red-800 flex items-center gap-1">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -46,7 +71,7 @@
         <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-800">Recent Claims</h3>
             <span class="text-xs font-medium bg-white text-gray-600 px-2.5 py-1 rounded-full border border-gray-200">
-                Last 30 days
+                Showing <?= count($claimsList) ?> of <?= $claimsTotal ?> claims
             </span>
         </div>
 
@@ -70,144 +95,116 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                        GL
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-800">Grace Lee</span>
-                                </div>
-                            </td>
-                            <td class="py-3 text-sm text-gray-600">Meal Allowance</td>
-                            <td class="py-3 text-sm font-medium text-gray-800">₱850</td>
-                            <td class="py-3 text-sm text-gray-600">Mar 15, 2024</td>
-                            <td class="py-3">
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-                                    Pending
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <button
-                                        class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
-                                        <i class="fas fa-eye text-xs"></i>
-                                        View
-                                    </button>
-                                    <button
-                                        class="text-sm text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2.5 py-1 rounded-lg transition-colors duration-200 border border-green-200 flex items-center gap-1">
-                                        <i class="fas fa-check text-xs"></i>
-                                        Approve
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                        JD
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-800">James Davis</span>
-                                </div>
-                            </td>
-                            <td class="py-3 text-sm text-gray-600">Transportation</td>
-                            <td class="py-3 text-sm font-medium text-gray-800">₱320</td>
-                            <td class="py-3 text-sm text-gray-600">Mar 14, 2024</td>
-                            <td class="py-3">
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                                    Approved
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                <button
-                                    class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
-                                    <i class="fas fa-eye text-xs"></i>
-                                    View
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                        MR
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-800">Maria Rodriguez</span>
-                                </div>
-                            </td>
-                            <td class="py-3 text-sm text-gray-600">Medical Reimbursement</td>
-                            <td class="py-3 text-sm font-medium text-gray-800">₱2,450</td>
-                            <td class="py-3 text-sm text-gray-600">Mar 12, 2024</td>
-                            <td class="py-3">
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                    Processing
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <button
-                                        class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
-                                        <i class="fas fa-eye text-xs"></i>
-                                        View
-                                    </button>
-                                    <button
-                                        class="text-sm text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2.5 py-1 rounded-lg transition-colors duration-200 border border-green-200 flex items-center gap-1">
-                                        <i class="fas fa-check text-xs"></i>
-                                        Approve
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr class="hover:bg-gray-50/50 transition-colors duration-150">
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                        RW
-                                    </div>
-                                    <span class="text-sm font-medium text-gray-800">Robert Wilson</span>
-                                </div>
-                            </td>
-                            <td class="py-3 text-sm text-gray-600">Training Fee</td>
-                            <td class="py-3 text-sm font-medium text-gray-800">₱5,000</td>
-                            <td class="py-3 text-sm text-gray-600">Mar 10, 2024</td>
-                            <td class="py-3">
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
-                                    Rejected
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                <button
-                                    class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
-                                    <i class="fas fa-eye text-xs"></i>
-                                    View
-                                </button>
-                            </td>
-                        </tr>
+                        <?php if (!empty($claimsList)): ?>
+                            <?php foreach ($claimsList as $claim): ?>
+                                <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div
+                                                class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
+                                                <?= $claim['initials'] ?>
+                                            </div>
+                                            <span
+                                                class="text-sm font-medium text-gray-800"><?= htmlspecialchars($claim['employee_name']) ?></span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600"><?= htmlspecialchars($claim['category']) ?></td>
+                                    <td class="py-3 text-sm font-medium text-gray-800">
+                                        ₱<?= number_format($claim['amount'], 2) ?></td>
+                                    <td class="py-3 text-sm text-gray-600"><?= $claim['formatted_date'] ?></td>
+                                    <td class="py-3">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <?= getClaimStatusClass($claim['status']) ?>">
+                                            <?= $claim['status'] ?>
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="viewClaim(<?= $claim['id'] ?>)"
+                                                class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
+                                                <i class="fas fa-eye text-xs"></i>
+                                                Receipt
+                                            </button>
+                                            <?php if ($claim['status'] == 'Pending'): ?>
+                                                <button onclick="approveClaim(<?= $claim['id'] ?>)"
+                                                    class="text-sm text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2.5 py-1 rounded-lg transition-colors duration-200 border border-green-200 flex items-center gap-1">
+                                                    <i class="fas fa-check text-xs"></i>
+                                                    Approve
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="py-12 text-center text-gray-500">
+                                    <i class="fas fa-receipt text-4xl mb-3 text-gray-300"></i>
+                                    <p class="text-lg font-medium">No claims found</p>
+                                    <p class="text-sm">Try adjusting your filters</p>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination -->
+            <?php if ($claimsTotalPages > 1): ?>
+                <div class="mt-6 flex items-center justify-between">
+                    <p class="text-xs text-gray-500">
+                        Showing <span
+                            class="font-medium"><?= min(1 + ($claimsPage - 1) * $claimsPerPage, $claimsTotal) ?>-<?= min($claimsPage * $claimsPerPage, $claimsTotal) ?></span>
+                        of <span class="font-medium"><?= $claimsTotal ?></span> claims
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <?php if ($claimsPage > 1): ?>
+                            <a href="?tab=claims&claims_page=<?= $claimsPage - 1 ?>&claims_status=<?= urlencode($claimsStatusFilter) ?>&claims_date=<?= urlencode($claimsDateFilter) ?>"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </a>
+                        <?php else: ?>
+                            <button
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
+                                disabled>
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </button>
+                        <?php endif; ?>
+
+                        <?php for ($i = 1; $i <= min(5, $claimsTotalPages); $i++): ?>
+                            <a href="?tab=claims&claims_page=<?= $i ?>&claims_status=<?= urlencode($claimsStatusFilter) ?>&claims_date=<?= urlencode($claimsDateFilter) ?>"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg <?= $i == $claimsPage ? 'bg-gray-800 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?> transition-colors">
+                                <?= $i ?>
+                            </a>
+                        <?php endfor; ?>
+
+                        <?php if ($claimsPage < $claimsTotalPages): ?>
+                            <a href="?tab=claims&claims_page=<?= $claimsPage + 1 ?>&claims_status=<?= urlencode($claimsStatusFilter) ?>&claims_date=<?= urlencode($claimsDateFilter) ?>"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </a>
+                        <?php else: ?>
+                            <button
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
+                                disabled>
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- Table Footer with Summary -->
             <div class="mt-6 pt-4 border-t border-gray-100">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-sm">
                     <div class="flex items-center gap-4">
                         <span class="text-gray-600">
-                            <span class="font-medium text-gray-800">Total Pending:</span> ₱3,620
+                            <span class="font-medium text-gray-800">Total Pending:</span>
+                            ₱<?= number_format($claimsTotalPendingAmount, 2) ?>
                         </span>
                         <span class="text-gray-600">
-                            <span class="font-medium text-gray-800">Total Approved:</span> ₱8,970
+                            <span class="font-medium text-gray-800">Total Approved:</span>
+                            ₱<?= number_format($claimsTotalApprovedAmount, 2) ?>
                         </span>
                     </div>
                     <div class="flex items-center gap-3">
@@ -221,7 +218,7 @@
                         </span>
                         <span class="flex items-center gap-1">
                             <span class="w-2 h-2 bg-blue-400 rounded-full"></span>
-                            <span class="text-xs text-gray-500">Processing</span>
+                            <span class="text-xs text-gray-500">Paid</span>
                         </span>
                         <span class="flex items-center gap-1">
                             <span class="w-2 h-2 bg-red-400 rounded-full"></span>
@@ -234,22 +231,38 @@
     </div>
 
     <!-- Quick Stats Footer -->
-    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
             <span class="text-xs text-gray-600">Average Claim Amount</span>
-            <span class="text-sm font-medium text-gray-800">₱1,850</span>
-        </div>
-        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
-            <span class="text-xs text-gray-600">Processing Time</span>
-            <span class="text-sm font-medium text-gray-800">2.4 days</span>
+            <span class="text-sm font-medium text-gray-800">₱<?= number_format($claimsAverageAmount, 2) ?></span>
         </div>
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
             <span class="text-xs text-gray-600">Most Common Type</span>
-            <span class="text-sm font-medium text-gray-800">Meal Allowance</span>
+            <span class="text-sm font-medium text-gray-800"><?= htmlspecialchars($claimsMostCommonType) ?></span>
         </div>
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
             <span class="text-xs text-gray-600">This Month Total</span>
-            <span class="text-sm font-medium text-gray-800">₱67,800</span>
+            <span class="text-sm font-medium text-gray-800">₱<?= number_format($claimsMonthTotal, 2) ?></span>
         </div>
     </div>
 </div>
+
+<script>
+    function applyClaimsFilter() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', 'claims');
+        url.searchParams.set('claims_page', '1');
+
+        const status = document.querySelector('select[name="claims_status"]')?.value;
+        const date = document.querySelector('select[name="claims_date"]')?.value;
+
+        if (status) url.searchParams.set('claims_status', status);
+        else url.searchParams.delete('claims_status');
+
+        if (date) url.searchParams.set('claims_date', date);
+        else url.searchParams.delete('claims_date');
+
+        window.location.href = url.toString();
+    }
+
+</script>

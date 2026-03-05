@@ -625,6 +625,112 @@ $attendanceRate = $workingDaysSince > 0
     : 0;
 
 
+// ============================================
+// CLAIMS MANAGEMENT SECTION
+// ============================================
+
+// Pagination for claims
+$claimsPage = isset($_GET['claims_page']) ? max(1, (int) $_GET['claims_page']) : 1;
+$claimsPerPage = 5;
+$claimsOffset = ($claimsPage - 1) * $claimsPerPage;
+
+// Filter parameters
+$claimsStatusFilter = isset($_GET['claims_status']) ? $_GET['claims_status'] : 'all';
+$claimsPeriodFilter = isset($_GET['claims_period']) ? $_GET['claims_period'] : '3';
+
+// Calculate date range based on period filter
+$claimsDateCondition = "";
+$claimsParams = [];
+
+if ($claimsPeriodFilter !== 'all') {
+    $months = (int) $claimsPeriodFilter;
+    $claimsDateCondition = "AND expense_date >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)";
+    $claimsParams[] = $months;
+}
+
+// Status condition
+$claimsStatusCondition = "";
+if ($claimsStatusFilter !== 'all') {
+    $claimsStatusCondition = "AND status = ?";
+    $claimsParams[] = $claimsStatusFilter;
+}
+
+// Get total claims count for pagination
+try {
+    $totalClaimsSql = "
+        SELECT COUNT(*) as count 
+        FROM expense_claims 
+        WHERE 1=1 
+        $claimsStatusCondition
+        $claimsDateCondition
+    ";
+    $totalClaims = $db->query($totalClaimsSql, $claimsParams)->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $totalClaims = 0;
+    error_log("Error fetching total claims: " . $th->getMessage());
+}
+
+// Get paginated claims
+try {
+    $claimsList = $db->query("
+        SELECT 
+            c.*,
+            e.full_name as employee_name,
+            e.employee_number,
+            DATE_FORMAT(c.expense_date, '%M %e, %Y') as formatted_date,
+            DATE_FORMAT(c.created_at, '%M %e, %Y') as formatted_created,
+            CASE 
+                WHEN c.status = 'Pending' THEN 'bg-amber-100 text-amber-700'
+                WHEN c.status = 'Approved' THEN 'bg-green-100 text-green-700'
+                WHEN c.status = 'Paid' THEN 'bg-blue-100 text-blue-700'
+                WHEN c.status = 'Rejected' THEN 'bg-red-100 text-red-700'
+                ELSE 'bg-gray-100 text-gray-700'
+            END as status_class,
+            CONCAT('CL-', YEAR(c.created_at), '-', LPAD(c.id, 4, '0')) as claim_number
+        FROM expense_claims c
+        LEFT JOIN employees e ON c.employee_id = e.id
+        WHERE 1=1
+        $claimsStatusCondition
+        $claimsDateCondition
+        ORDER BY c.expense_date DESC, c.created_at DESC
+        LIMIT $claimsPerPage OFFSET $claimsOffset
+    ", $claimsParams)->find();
+} catch (\Throwable $th) {
+    $claimsList = [];
+    error_log("Error fetching claims: " . $th->getMessage());
+}
+
+$totalClaimsPages = ceil($totalClaims / $claimsPerPage);
+
+// Get icon based on category
+function getClaimIcon($category)
+{
+    $category = strtolower($category ?? '');
+    return match (true) {
+        str_contains($category, 'travel') || str_contains($category, 'plane') => 'fa-plane',
+        str_contains($category, 'meal') || str_contains($category, 'food') || str_contains($category, 'dinner') => 'fa-utensils',
+        str_contains($category, 'transport') || str_contains($category, 'taxi') || str_contains($category, 'grab') => 'fa-taxi',
+        str_contains($category, 'supplies') || str_contains($category, 'office') => 'fa-file-lines',
+        str_contains($category, 'hotel') || str_contains($category, 'accommodation') => 'fa-hotel',
+        str_contains($category, 'fuel') || str_contains($category, 'gas') => 'fa-gas-pump',
+        default => 'fa-receipt'
+    };
+}
+
+function getIconBgClass($category)
+{
+    $category = strtolower($category ?? '');
+    return match (true) {
+        str_contains($category, 'travel') || str_contains($category, 'plane') => 'bg-blue-100 text-blue-700',
+        str_contains($category, 'meal') || str_contains($category, 'food') || str_contains($category, 'dinner') => 'bg-green-100 text-green-700',
+        str_contains($category, 'transport') || str_contains($category, 'taxi') || str_contains($category, 'grab') => 'bg-purple-100 text-purple-700',
+        str_contains($category, 'supplies') || str_contains($category, 'office') => 'bg-amber-100 text-amber-700',
+        str_contains($category, 'hotel') || str_contains($category, 'accommodation') => 'bg-indigo-100 text-indigo-700',
+        default => 'bg-gray-100 text-gray-700'
+    };
+}
+$claimsActiveTab = isset($_GET['panel']) && $_GET['panel'] == 'history' ? 'history' : 'new';
+
 // Add all variables to view
 view_path('ess', 'index', [
     'tasks' => $limitedTasks,
@@ -665,5 +771,16 @@ view_path('ess', 'index', [
     'totalPages' => $totalPages,
     'currentPage' => $page,
     'attendanceRate' => $attendanceRate,
-    'workingDaysSince' => $workingDaysSince
+    'workingDaysSince' => $workingDaysSince,
+
+
+    //claims
+    'claimsPage' => $claimsPage,
+    'claimsPerPage' => $claimsPerPage,
+    'totalClaimsPages' => $totalClaimsPages,
+    'totalClaims' => $totalClaims,
+    'claimsStatusFilter' => $claimsStatusFilter,
+    'claimsPeriodFilter' => $claimsPeriodFilter,
+    'claimsList' => $claimsList,
+    'claimsActiveTab' => $claimsActiveTab
 ]);

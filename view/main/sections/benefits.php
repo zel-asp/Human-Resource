@@ -16,28 +16,58 @@
         <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Enrolled</p>
             <div class="flex items-baseline justify-between">
-                <p class="text-2xl font-bold text-gray-800">142</p>
-                <span class="text-sm text-gray-500">/156</span>
+                <p class="text-2xl font-bold text-gray-800"><?= $hmoEnrolledCount ?></p>
+                <span class="text-sm text-gray-500">/<?= $hmoTotalEmployees ?></span>
             </div>
-            <p class="text-xs text-gray-400 mt-1">91% coverage rate</p>
+            <p class="text-xs text-gray-400 mt-1"><?= $hmoCoverageRate ?>% coverage rate</p>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Pending Enrollment</p>
-            <p class="text-2xl font-bold text-gray-800">14</p>
+            <p class="text-2xl font-bold text-gray-800"><?= $hmoPendingCount ?></p>
             <p class="text-xs text-gray-400 mt-1">Awaiting requirements</p>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Claims This Month</p>
-            <p class="text-2xl font-bold text-gray-800">23</p>
-            <p class="text-xs text-gray-400 mt-1">₱67,200 total value</p>
+            <p class="text-2xl font-bold text-gray-800"><?= $hmoClaimsCount ?></p>
+            <p class="text-xs text-gray-400 mt-1"><?= formatHmoCurrency($hmoClaimsTotal) ?> total value</p>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Premium Due</p>
-            <p class="text-2xl font-bold text-gray-800">₱45.2K</p>
+            <p class="text-2xl font-bold text-gray-800"><?= formatHmoCurrency($hmoPremiumDue) ?></p>
             <p class="text-xs text-gray-400 mt-1">Due Apr 30, 2024</p>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-6">
+        <div class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">Filter by:</span>
+                <select name="hmo_provider" onchange="applyHmoFilter()"
+                    class="text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                    <option value="">All Providers</option>
+                    <?php foreach ($hmoProviders as $provider): ?>
+                        <option value="<?= $provider['id'] ?>" <?= $hmoProviderFilter == $provider['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($provider['provider_name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <select name="hmo_status" onchange="applyHmoFilter()"
+                    class="text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                    <option value="">All Status</option>
+                    <option value="active" <?= $hmoStatusFilter == 'active' ? 'selected' : '' ?>>Active</option>
+                    <option value="expiring" <?= $hmoStatusFilter == 'expiring' ? 'selected' : '' ?>>Expiring Soon</option>
+                    <option value="expired" <?= $hmoStatusFilter == 'expired' ? 'selected' : '' ?>>Expired</option>
+                </select>
+            </div>
+            <?php if (!empty($hmoProviderFilter) || !empty($hmoStatusFilter)): ?>
+                <a href="?tab=hmo&hmo_page=1" class="text-sm text-red-600 hover:text-red-800 flex items-center gap-1">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -55,92 +85,55 @@
 
             <div class="p-6">
                 <div class="space-y-3">
-                    <!-- Maxicare Card -->
-                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow duration-200">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start gap-3">
-                                <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-shield-alt text-blue-600"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-medium text-gray-800">Maxicare</h4>
-                                    <p class="text-xs text-gray-500 mt-1">Principal + 2 dependents</p>
-                                    <div class="flex items-center gap-3 mt-2">
-                                        <span class="text-xs text-gray-400">Coverage limit: ₱200,000</span>
-                                        <span class="text-xs text-gray-400">•</span>
-                                        <span class="text-xs text-gray-400">120 enrolled</span>
+                    <?php if (!empty($hmoCoveragePlans)): ?>
+                        <?php foreach ($hmoCoveragePlans as $plan): ?>
+                            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow duration-200">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-shield-alt text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-medium text-gray-800">
+                                                <?= htmlspecialchars($plan['provider_name']) ?></h4>
+                                            <p class="text-xs text-gray-500 mt-1">Principal + dependents</p>
+                                            <div class="flex items-center gap-3 mt-2">
+                                                <span class="text-xs text-gray-400">Coverage:
+                                                    <?= formatHmoCurrency($plan['avg_coverage'] ?? 200000) ?></span>
+                                                <span class="text-xs text-gray-400">•</span>
+                                                <span class="text-xs text-gray-400"><?= $plan['enrolled_count'] ?>
+                                                    enrolled</span>
+                                            </div>
+                                        </div>
                                     </div>
+                                    <span
+                                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                        Active
+                                    </span>
                                 </div>
                             </div>
-                            <span
-                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                                Active
-                            </span>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-shield-alt text-4xl mb-3 text-gray-300"></i>
+                            <p>No active coverage plans</p>
                         </div>
-                    </div>
-
-                    <!-- Dental Coverage Card -->
-                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow duration-200">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start gap-3">
-                                <div class="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-tooth text-purple-600"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-medium text-gray-800">Dental Coverage</h4>
-                                    <p class="text-xs text-gray-500 mt-1">Annual limit: ₱10,000</p>
-                                    <div class="flex items-center gap-3 mt-2">
-                                        <span class="text-xs text-gray-400">85 enrolled</span>
-                                        <span class="text-xs text-gray-400">•</span>
-                                        <span class="text-xs text-gray-400">₱4,500 avg claim</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <span
-                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                                Active
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Vision Coverage Card -->
-                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow duration-200">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start gap-3">
-                                <div class="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-eye text-amber-600"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-medium text-gray-800">Vision Care</h4>
-                                    <p class="text-xs text-gray-500 mt-1">Annual eye exam + ₱3,000 frame allowance</p>
-                                    <div class="flex items-center gap-3 mt-2">
-                                        <span class="text-xs text-gray-400">62 enrolled</span>
-                                        <span class="text-xs text-gray-400">•</span>
-                                        <span class="text-xs text-gray-400">Renews Jun 2024</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <span
-                                class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                                Active
-                            </span>
-                        </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Coverage Footer -->
                 <div class="mt-4 pt-4 border-t border-gray-100">
                     <div class="flex items-center justify-between text-sm">
                         <span class="text-gray-500">Total Monthly Premium</span>
-                        <span class="font-medium text-gray-800">₱124,500</span>
+                        <span class="font-medium text-gray-800"><?= formatHmoCurrency($hmoTotalMonthlyPremium) ?></span>
                     </div>
                     <div class="flex items-center justify-between text-sm mt-1">
                         <span class="text-gray-500">Company Share</span>
-                        <span class="font-medium text-gray-800">₱87,150 (70%)</span>
+                        <span class="font-medium text-gray-800"><?= formatHmoCurrency($hmoCompanyShare) ?> (70%)</span>
                     </div>
                     <div class="flex items-center justify-between text-sm mt-1">
                         <span class="text-gray-500">Employee Share</span>
-                        <span class="font-medium text-gray-800">₱37,350 (30%)</span>
+                        <span class="font-medium text-gray-800"><?= formatHmoCurrency($hmoEmployeeShare) ?> (30%)</span>
                     </div>
                 </div>
             </div>
@@ -160,60 +153,35 @@
 
                 <div class="p-6">
                     <div class="space-y-3">
-                        <!-- Expiring Item -->
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-clock text-yellow-600 text-xs"></i>
+                        <?php if (!empty($hmoExpiringSoon)): ?>
+                            <?php foreach ($hmoExpiringSoon as $expiring): ?>
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-clock text-yellow-600 text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-800"><?= htmlspecialchars($expiring['full_name']) ?>
+                                            </p>
+                                            <p class="text-xs text-gray-500">
+                                                <?= htmlspecialchars($expiring['provider_name']) ?> ends
+                                                <?= date('M j, Y', strtotime($expiring['expiry_date'])) ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onclick="renewBenefit(<?= $expiring['id'] ?>, '<?= htmlspecialchars($expiring['full_name']) ?>')"
+                                        class="text-sm text-gray-600 hover:text-gray-800 bg-white hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors duration-200 border border-gray-200">
+                                        Renew
+                                    </button>
                                 </div>
-                                <div>
-                                    <p class="font-medium text-gray-800">Grace Lee</p>
-                                    <p class="text-xs text-gray-500">HMO coverage ends Apr 30, 2024</p>
-                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="text-center py-4 text-gray-500">
+                                <i class="fas fa-check-circle text-3xl mb-2 text-gray-300"></i>
+                                <p class="text-sm">No expiring benefits</p>
                             </div>
-                            <button
-                                class="text-sm text-gray-600 hover:text-gray-800 bg-white hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors duration-200 border border-gray-200">
-                                Renew
-                            </button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-clock text-yellow-600 text-xs"></i>
-                                </div>
-                                <div>
-                                    <p class="font-medium text-gray-800">James Davis</p>
-                                    <p class="text-xs text-gray-500">Dental coverage ends May 15, 2024</p>
-                                </div>
-                            </div>
-                            <button
-                                class="text-sm text-gray-600 hover:text-gray-800 bg-white hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors duration-200 border border-gray-200">
-                                Renew
-                            </button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-clock text-yellow-600 text-xs"></i>
-                                </div>
-                                <div>
-                                    <p class="font-medium text-gray-800">Maria Rodriguez</p>
-                                    <p class="text-xs text-gray-500">Vision care ends May 22, 2024</p>
-                                </div>
-                            </div>
-                            <button
-                                class="text-sm text-gray-600 hover:text-gray-800 bg-white hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors duration-200 border border-gray-200">
-                                Renew
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 text-center">
-                        <a href="#" class="text-sm text-gray-500 hover:text-gray-700">
-                            View all expiring (8)
-                        </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -226,61 +194,200 @@
 
                 <div class="p-6">
                     <div class="space-y-3">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                JL
+                        <?php if (!empty($hmoRecentEnrollments)): ?>
+                            <?php foreach ($hmoRecentEnrollments as $enrollment): ?>
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
+                                        <?= $enrollment['initials'] ?>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-800">
+                                            <?= htmlspecialchars($enrollment['full_name']) ?></p>
+                                        <p class="text-xs text-gray-400">
+                                            Enrolled in <?= htmlspecialchars($enrollment['provider_name']) ?> •
+                                            <?= $enrollment['days_ago'] ?> days ago
+                                        </p>
+                                    </div>
+                                    <span
+                                        class="text-xs <?= $enrollment['enrollment_status'] == 'Processed' ? 'text-gray-500' : 'text-yellow-600' ?>">
+                                        <?= $enrollment['enrollment_status'] ?>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="text-center py-4 text-gray-500">
+                                <i class="fas fa-user-plus text-3xl mb-2 text-gray-300"></i>
+                                <p class="text-sm">No recent enrollments</p>
                             </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-800">John Lee</p>
-                                <p class="text-xs text-gray-400">Enrolled in Maxicare • 2 days ago</p>
-                            </div>
-                            <span class="text-xs text-gray-500">Processed</span>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                ST
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-800">Sarah Tan</p>
-                                <p class="text-xs text-gray-400">Enrolled in Dental • 3 days ago</p>
-                            </div>
-                            <span class="text-xs text-gray-500">Processed</span>
-                        </div>
-
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                MC
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-800">Mike Chen</p>
-                                <p class="text-xs text-gray-400">Enrolled in Vision • 5 days ago</p>
-                            </div>
-                            <span class="text-xs text-yellow-600">Pending</span>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="grid grid-cols-2 gap-3">
-                <button
-                    class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-left">
-                    <i class="fas fa-file-medical text-gray-600 mb-2"></i>
-                    <p class="text-sm font-medium text-gray-800">Process Claim</p>
-                    <p class="text-xs text-gray-500">3 pending</p>
-                </button>
-                <button
-                    class="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-left">
-                    <i class="fas fa-chart-line text-gray-600 mb-2"></i>
-                    <p class="text-sm font-medium text-gray-800">Usage Report</p>
-                    <p class="text-xs text-gray-500">View analytics</p>
-                </button>
             </div>
         </div>
     </div>
 
+    <!-- Benefits List Table -->
+    <div class="mt-6 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">All Benefit Enrollments</h3>
+            <span class="text-xs font-medium bg-white text-gray-600 px-2.5 py-1 rounded-full border border-gray-200">
+                Showing <?= count($hmoBenefitsList) ?> of <?= $hmoTotalBenefits ?>
+            </span>
+        </div>
+
+        <div class="p-6">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-100">
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Employee</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Provider</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Benefit Type</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Effective Date</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry
+                                Date</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Monthly Premium</th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status
+                            </th>
+                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($hmoBenefitsList)): ?>
+                            <?php foreach ($hmoBenefitsList as $benefit): ?>
+                                <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div
+                                                class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
+                                                <?= $benefit['initials'] ?>
+                                            </div>
+                                            <div>
+                                                <span
+                                                    class="text-sm font-medium text-gray-800"><?= htmlspecialchars($benefit['full_name']) ?></span>
+                                                <p class="text-xs text-gray-400">
+                                                    <?= htmlspecialchars($benefit['position'] ?? '') ?></p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600"><?= htmlspecialchars($benefit['provider_name']) ?>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600">
+                                        <?= htmlspecialchars($benefit['benefit_type'] ?? 'HMO') ?></td>
+                                    <td class="py-3 text-sm text-gray-600"><?= $benefit['formatted_effective'] ?></td>
+                                    <td class="py-3 text-sm text-gray-600">
+                                        <?= $benefit['expiry_date'] ? $benefit['formatted_expiry'] : 'No Expiry' ?></td>
+                                    <td class="py-3 text-sm font-medium text-gray-800">
+                                        <?= formatHmoCurrency($benefit['monthly_premium'] ?? 0) ?></td>
+                                    <td class="py-3">
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <?= $benefit['status_class'] ?>">
+                                            <?= $benefit['status_text'] ?>
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="viewBenefit(<?= $benefit['id'] ?>)"
+                                                class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
+                                                <i class="fas fa-eye text-xs"></i>
+                                                View
+                                            </button>
+                                            <?php if ($benefit['status_text'] == 'Expiring Soon' || $benefit['status_text'] == 'Expired'): ?>
+                                                <button
+                                                    onclick="renewBenefit(<?= $benefit['id'] ?>, '<?= htmlspecialchars($benefit['full_name']) ?>')"
+                                                    class="text-sm text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2.5 py-1 rounded-lg transition-colors duration-200 border border-green-200 flex items-center gap-1">
+                                                    <i class="fas fa-sync-alt text-xs"></i>
+                                                    Renew
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" class="py-12 text-center text-gray-500">
+                                    <i class="fas fa-shield-alt text-4xl mb-3 text-gray-300"></i>
+                                    <p class="text-lg font-medium">No benefit enrollments found</p>
+                                    <p class="text-sm">Click "Enroll Employee" to add a new enrollment</p>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <?php if ($hmoTotalPages > 1): ?>
+                <div class="mt-6 flex items-center justify-between">
+                    <p class="text-xs text-gray-500">
+                        Showing <span
+                            class="font-medium"><?= min(1 + ($hmoPage - 1) * $hmoPerPage, $hmoTotalBenefits) ?>-<?= min($hmoPage * $hmoPerPage, $hmoTotalBenefits) ?></span>
+                        of <span class="font-medium"><?= $hmoTotalBenefits ?></span> enrollments
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <?php if ($hmoPage > 1): ?>
+                            <a href="?tab=hmo&hmo_page=<?= $hmoPage - 1 ?>&hmo_provider=<?= urlencode($hmoProviderFilter) ?>&hmo_status=<?= urlencode($hmoStatusFilter) ?>"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </a>
+                        <?php else: ?>
+                            <button
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
+                                disabled>
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </button>
+                        <?php endif; ?>
+
+                        <?php for ($i = 1; $i <= min(5, $hmoTotalPages); $i++): ?>
+                            <a href="?tab=hmo&hmo_page=<?= $i ?>&hmo_provider=<?= urlencode($hmoProviderFilter) ?>&hmo_status=<?= urlencode($hmoStatusFilter) ?>"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg <?= $i == $hmoPage ? 'bg-gray-800 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?> transition-colors">
+                                <?= $i ?>
+                            </a>
+                        <?php endfor; ?>
+
+                        <?php if ($hmoPage < $hmoTotalPages): ?>
+                            <a href="?tab=hmo&hmo_page=<?= $hmoPage + 1 ?>&hmo_provider=<?= urlencode($hmoProviderFilter) ?>&hmo_status=<?= urlencode($hmoStatusFilter) ?>"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </a>
+                        <?php else: ?>
+                            <button
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
+                                disabled>
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
 </div>
+
+<script>
+    function applyHmoFilter() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', 'hmo');
+        url.searchParams.set('hmo_page', '1');
+
+        const provider = document.querySelector('select[name="hmo_provider"]')?.value;
+        const status = document.querySelector('select[name="hmo_status"]')?.value;
+
+        if (provider) url.searchParams.set('hmo_provider', provider);
+        else url.searchParams.delete('hmo_provider');
+
+        if (status) url.searchParams.set('hmo_status', status);
+        else url.searchParams.delete('hmo_status');
+
+        window.location.href = url.toString();
+    }
+
+</script>

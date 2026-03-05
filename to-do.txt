@@ -20,8 +20,9 @@ TASK: left behind
 18. view and approve in timesheet
 19.time & attendance manual entry
 20. notify and view gap in competency
-21. compensation review noe btn
-22. updatin in viewEmployeeDetails - already have contoller (updateEmployeeInfo)
+21. compensation review note btn
+22. update in viewEmployeeDetails - already have contoller (updateEmployeeInfo)
+23. add shift and hourly rate
 
 TASK: EACH DAY MUST DO FUNCTIONS FOR EACH SECTION
 day1
@@ -51,9 +52,9 @@ day5 - done
 day6
 1. competency(done)
 2. training(done)
-3. succession
-4. hmo
-5. claims
+3. succession(done)
+4. hmo(done)
+5. claims(done)
 
 day7
 1. core human(done)

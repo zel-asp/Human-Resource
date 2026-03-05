@@ -5,7 +5,7 @@ use Core\Database;
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     $_SESSION['error'][] = 'Method not allowed';
-    header('Location: /previous-page');
+    header('Location: /?tab=leave');
     exit();
 }
 
@@ -13,13 +13,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
     http_response_code(403);
     $_SESSION['error'][] = 'Invalid security token';
-    header('Location: /previous-page');
+    header('Location: /?tab=leave');
     exit();
 }
 
 if (!isset($_POST['request_id']) || empty($_POST['request_id'])) {
     $_SESSION['error'][] = 'Request ID is required';
-    header('Location: /previous-page');
+    header('Location: /?tab=leave');
     exit();
 }
 
@@ -68,5 +68,5 @@ try {
     error_log("Delete request error: " . $e->getMessage());
 }
 
-header('Location: /?tab=requests#requestsPanel');
+header('Location: /?tab=leave');
 exit();

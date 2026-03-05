@@ -167,5 +167,5 @@ try {
 // ========================
 // REDIRECT BACK
 // ========================
-header('Location: /?tab=requests');
+header('Location: /');
 exit();

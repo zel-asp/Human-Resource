@@ -196,15 +196,15 @@
                 </div>
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-3 gap-3 mt-4">
-                    <div class="bg-green-50 rounded-lg p-3 text-center">
+                    <div class="bg-green-50 rounded-lg p-2 text-center">
                         <p class="text-xs text-green-600 font-medium">Total Hires</p>
                         <p class="text-lg font-bold text-green-700"><?= $analyticsTotalHires ?></p>
                     </div>
-                    <div class="bg-red-50 rounded-lg p-3 text-center">
+                    <div class="bg-red-50 rounded-lg p-2 text-center">
                         <p class="text-xs text-red-600 font-medium">Total Terminations</p>
                         <p class="text-lg font-bold text-red-700"><?= $analyticsTotalTerminations ?></p>
                     </div>
-                    <div class="bg-blue-50 rounded-lg p-3 text-center">
+                    <div class="bg-blue-50 rounded-lg p-2 text-center">
                         <p class="text-xs text-blue-600 font-medium">Net Growth</p>
                         <p class="text-lg font-bold text-blue-700">+<?= $analyticsNetGrowth ?></p>
                     </div>
@@ -216,28 +216,23 @@
     <!-- Additional Metrics Row -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Demographics - Gender Distribution -->
+        <!-- Gender Distribution -->
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-linear-to-r from-pink-50 to-rose-50">
                 <h3 class="text-lg font-semibold text-gray-800">Gender Distribution</h3>
             </div>
             <div class="p-6">
-                <div class="h-25 mb-4">
+                <div class="h-37 mb-4">
                     <canvas id="analyticsGenderChart"></canvas>
                 </div>
-                <div class="flex justify-center gap-8">
-                    <div class="text-center">
-                        <div class="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <span class="text-lg font-bold text-pink-600"><?= $analyticsFemalePct ?>%</span>
-                        </div>
-                        <p class="text-sm font-medium text-gray-700">Female</p>
-                        <p class="text-xs text-gray-400"><?= $analyticsFemaleCount ?> employees</p>
+                <div class="grid grid-cols-2 gap-2 text-center">
+                    <div class="p-2 bg-pink-50 rounded-lg">
+                        <p class="text-lg font-bold text-pink-700"><?= $analyticsFemalePct ?>%</p>
+                        <p class="text-xs text-gray-600">Female · <?= $analyticsFemaleCount ?> emp</p>
                     </div>
-                    <div class="text-center">
-                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                            <span class="text-lg font-bold text-blue-600"><?= $analyticsMalePct ?>%</span>
-                        </div>
-                        <p class="text-sm font-medium text-gray-700">Male</p>
-                        <p class="text-xs text-gray-400"><?= $analyticsMaleCount ?> employees</p>
+                    <div class="p-2 bg-blue-50 rounded-lg">
+                        <p class="text-lg font-bold text-blue-700"><?= $analyticsMalePct ?>%</p>
+                        <p class="text-xs text-gray-600">Male · <?= $analyticsMaleCount ?> emp</p>
                     </div>
                 </div>
             </div>
@@ -334,32 +329,32 @@
         }
     });
 
-     window.analyticsData = {
-            dateRange: <?= $analyticsDateRange ?? 0 ?>,
-            deptLabels: <?= isset($analyticsDeptHeadcount) ? json_encode(array_column($analyticsDeptHeadcount, 'department')) : '[]' ?>,
-            deptData: <?= isset($analyticsDeptHeadcount) ? json_encode(array_column($analyticsDeptHeadcount, 'count')) : '[]' ?>,
-            deptColors: <?= isset($analyticsDeptColors) ? json_encode(array_slice($analyticsDeptColors, 0, count($analyticsDeptHeadcount ?? []))) : '[]' ?>,
-            totalHeadcount: <?= $analyticsTotalHeadcount ?? 0 ?>,
-            months: <?= isset($analyticsMonths) ? json_encode($analyticsMonths) : '[]' ?>,
-            hiresData: <?= isset($analyticsHiresData) ? json_encode($analyticsHiresData) : '[]' ?>,
-            terminationsData: <?= isset($analyticsTerminationsData) ? json_encode($analyticsTerminationsData) : '[]' ?>,
-            totalHires: <?= $analyticsTotalHires ?? 0 ?>,
-            totalTerminations: <?= $analyticsTotalTerminations ?? 0 ?>,
-            netGrowth: <?= $analyticsNetGrowth ?? 0 ?>,
-            femalePct: <?= $analyticsFemalePct ?? 0 ?>,
-            malePct: <?= $analyticsMalePct ?? 0 ?>,
-            femaleCount: <?= $analyticsFemaleCount ?? 0 ?>,
-            maleCount: <?= $analyticsMaleCount ?? 0 ?>,
-            ageData: [<?= $analyticsAge18_30 ?? 0 ?>, <?= $analyticsAge31_45 ?? 0 ?>, <?= $analyticsAge46 ?? 0 ?>],
-            tenureData: [<?= $analyticsTenureLess1 ?? 0 ?>, <?= $analyticsTenure1to3 ?? 0 ?>, <?= $analyticsTenure3plus ?? 0 ?>],
-            avgSalary: <?= $analyticsAvgSalary ?? 0 ?>,
-            salaryIncreasePct: <?= $analyticsSalaryIncreasePct ?? 0 ?>,
-            salaryIncrease: <?= $analyticsSalaryIncrease ?? 0 ?>,
-            employeesPromoted: <?= $analyticsEmployeesPromoted ?? 0 ?>,
-            trainingsCompleted: <?= $analyticsTrainingsCompleted ?? 0 ?>,
-            certificationsEarned: <?= $analyticsCertificationsEarned ?? 0 ?>,
-            avgRating: <?= $analyticsAvgRating ?? 0 ?>,
-            totalRatings: <?= $analyticsTotalRatings ?? 0 ?>,
-            lastSync: <?= json_encode($analyticsLastSync ?? '') ?>
-        };
+    window.analyticsData = {
+        dateRange: <?= $analyticsDateRange ?? 0 ?>,
+        deptLabels: <?= isset($analyticsDeptHeadcount) ? json_encode(array_column($analyticsDeptHeadcount, 'department')) : '[]' ?>,
+        deptData: <?= isset($analyticsDeptHeadcount) ? json_encode(array_column($analyticsDeptHeadcount, 'count')) : '[]' ?>,
+        deptColors: <?= isset($analyticsDeptColors) ? json_encode(array_slice($analyticsDeptColors, 0, count($analyticsDeptHeadcount ?? []))) : '[]' ?>,
+        totalHeadcount: <?= $analyticsTotalHeadcount ?? 0 ?>,
+        months: <?= isset($analyticsMonths) ? json_encode($analyticsMonths) : '[]' ?>,
+        hiresData: <?= isset($analyticsHiresData) ? json_encode($analyticsHiresData) : '[]' ?>,
+        terminationsData: <?= isset($analyticsTerminationsData) ? json_encode($analyticsTerminationsData) : '[]' ?>,
+        totalHires: <?= $analyticsTotalHires ?? 0 ?>,
+        totalTerminations: <?= $analyticsTotalTerminations ?? 0 ?>,
+        netGrowth: <?= $analyticsNetGrowth ?? 0 ?>,
+        femalePct: <?= $analyticsFemalePct ?? 0 ?>,
+        malePct: <?= $analyticsMalePct ?? 0 ?>,
+        femaleCount: <?= $analyticsFemaleCount ?? 0 ?>,
+        maleCount: <?= $analyticsMaleCount ?? 0 ?>,
+        ageData: [<?= $analyticsAge18_30 ?? 0 ?>, <?= $analyticsAge31_45 ?? 0 ?>, <?= $analyticsAge46 ?? 0 ?>],
+        tenureData: [<?= $analyticsTenureLess1 ?? 0 ?>, <?= $analyticsTenure1to3 ?? 0 ?>, <?= $analyticsTenure3plus ?? 0 ?>],
+        avgSalary: <?= $analyticsAvgSalary ?? 0 ?>,
+        salaryIncreasePct: <?= $analyticsSalaryIncreasePct ?? 0 ?>,
+        salaryIncrease: <?= $analyticsSalaryIncrease ?? 0 ?>,
+        employeesPromoted: <?= $analyticsEmployeesPromoted ?? 0 ?>,
+        trainingsCompleted: <?= $analyticsTrainingsCompleted ?? 0 ?>,
+        certificationsEarned: <?= $analyticsCertificationsEarned ?? 0 ?>,
+        avgRating: <?= $analyticsAvgRating ?? 0 ?>,
+        totalRatings: <?= $analyticsTotalRatings ?? 0 ?>,
+        lastSync: <?= json_encode($analyticsLastSync ?? '') ?>
+    };
 </script>

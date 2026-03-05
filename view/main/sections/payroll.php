@@ -5,7 +5,7 @@
             <h2 class="text-2xl font-semibold text-gray-800">Payroll Management</h2>
             <p class="text-gray-500 text-sm mt-1">Process payroll and manage compensation</p>
         </div>
-        <button class="btn-primary" onclick="processPayroll()">
+        <button onclick="processPayroll()" class="btn-primary">
             <i class="fas fa-calculator"></i>
             Process Payroll
         </button>
@@ -20,40 +20,64 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 uppercase tracking-wider">Current Payroll Period</p>
-                    <p class="text-lg font-semibold text-gray-800">Mar 1-15, 2024</p>
+                    <p class="text-lg font-semibold text-gray-800"><?= $payrollPeriodLabel ?></p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
                 <span class="text-xs text-gray-500">Payroll Date:</span>
                 <span
                     class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                    March 20, 2024
+                    <?= date('F j, Y', strtotime($payrollPayDate)) ?>
                 </span>
             </div>
         </div>
     </div>
 
+    <!-- Filter Bar -->
+    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-6">
+        <div class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">Filter by:</span>
+                <select name="payroll_status" onchange="applyPayrollFilter()"
+                    class="text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                    <option value="">All Status</option>
+                    <option value="Processed" <?= $payrollStatusFilter == 'Processed' ? 'selected' : '' ?>>Processed
+                    </option>
+                    <option value="Pending" <?= $payrollStatusFilter == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                </select>
+                <select name="payroll_department" onchange="applyPayrollFilter()"
+                    class="text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                    <option value="">All Departments</option>
+                    <?php foreach ($payrollDepartments as $dept): ?>
+                        <option value="<?= htmlspecialchars($dept['department']) ?>"
+                            <?= $payrollDepartmentFilter == $dept['department'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($dept['department']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php if (!empty($payrollStatusFilter) || !empty($payrollDepartmentFilter)): ?>
+                <a href="?tab=payroll&payroll_page=1"
+                    class="text-sm text-red-600 hover:text-red-800 flex items-center gap-1">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
+
     <!-- Payroll Summary Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols- gap-4 mb-6">
         <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Gross Pay</p>
-            <p class="text-2xl font-bold text-gray-800">₱1,245,000</p>
+            <p class="text-2xl font-bold text-gray-800"><?= formatPayrollCurrency($payrollTotalGross) ?></p>
             <div class="flex items-center gap-2 mt-1">
                 <span class="text-xs text-gray-400">Before deductions</span>
             </div>
         </div>
 
         <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Deductions</p>
-            <p class="text-2xl font-bold text-gray-800">₱155,625</p>
-            <div class="flex items-center gap-2 mt-1">
-                <span class="text-xs text-gray-400">Taxes & benefits</span>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
             <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Net Pay</p>
-            <p class="text-2xl font-bold text-gray-800">₱1,089,375</p>
+            <p class="text-2xl font-bold text-gray-800"><?= formatPayrollCurrency($payrollTotalNet) ?></p>
             <div class="flex items-center gap-2 mt-1">
                 <span class="text-xs text-gray-400">Take-home pay</span>
             </div>
@@ -66,14 +90,14 @@
             class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <h3 class="text-lg font-semibold text-gray-800">Payroll Summary</h3>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-gray-500">86 employees</span>
+                <span class="text-xs text-gray-500"><?= $payrollTotalEmployees ?> employees</span>
                 <span class="inline-flex items-center gap-1 text-xs">
                     <span class="w-2 h-2 bg-green-400 rounded-full"></span>
-                    <span class="text-gray-500">Processed: 42</span>
+                    <span class="text-gray-500">Processed: <?= $payrollProcessedCount ?></span>
                 </span>
                 <span class="inline-flex items-center gap-1 text-xs">
                     <span class="w-2 h-2 bg-yellow-400 rounded-full"></span>
-                    <span class="text-gray-500">Pending: 44</span>
+                    <span class="text-gray-500">Pending: <?= $payrollPendingCount ?></span>
                 </span>
             </div>
         </div>
@@ -95,162 +119,59 @@
                                 Deductions</th>
                             <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Net
                                 Pay</th>
-                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status
-                            </th>
                             <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                        GL
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">Grace Lee</p>
-                                        <p class="text-xs text-gray-400">Restaurant Server</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-3 text-sm text-gray-600">80</td>
-                            <td class="py-3 text-sm text-gray-600">5</td>
-                            <td class="py-3 text-sm font-medium text-gray-800">₱25,500</td>
-                            <td class="py-3 text-sm text-gray-600">₱3,825</td>
-                            <td class="py-3 text-sm font-semibold text-gray-800">₱21,675</td>
-                            <td class="py-3">
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                                    Processed
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <button
-                                        class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
-                                        <i class="fas fa-receipt text-xs"></i>
-                                        Payslip
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                        JD
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">James Davis</p>
-                                        <p class="text-xs text-gray-400">Line Cook</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-3 text-sm text-gray-600">80</td>
-                            <td class="py-3 text-sm text-gray-600">0</td>
-                            <td class="py-3 text-sm font-medium text-gray-800">₱18,400</td>
-                            <td class="py-3 text-sm text-gray-600">₱2,760</td>
-                            <td class="py-3 text-sm font-semibold text-gray-800">₱15,640</td>
-                            <td class="py-3">
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-                                    Pending
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <button
-                                        class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
-                                        <i class="fas fa-edit text-xs"></i>
-                                        Review
-                                    </button>
-                                    <button
-                                        class="text-sm text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2.5 py-1 rounded-lg transition-colors duration-200 border border-green-200 flex items-center gap-1">
-                                        <i class="fas fa-check text-xs"></i>
-                                        Approve
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                        MC
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">Michael Chen</p>
-                                        <p class="text-xs text-gray-400">Sous Chef</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-3 text-sm text-gray-600">80</td>
-                            <td class="py-3 text-sm text-gray-600">8</td>
-                            <td class="py-3 text-sm font-medium text-gray-800">₱32,800</td>
-                            <td class="py-3 text-sm text-gray-600">₱4,920</td>
-                            <td class="py-3 text-sm font-semibold text-gray-800">₱27,880</td>
-                            <td class="py-3">
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                                    Processed
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <button
-                                        class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
-                                        <i class="fas fa-receipt text-xs"></i>
-                                        Payslip
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr class="hover:bg-gray-50/50 transition-colors duration-150">
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
-                                        SW
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">Sarah Wong</p>
-                                        <p class="text-xs text-gray-400">Pastry Chef</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-3 text-sm text-gray-600">80</td>
-                            <td class="py-3 text-sm text-gray-600">3</td>
-                            <td class="py-3 text-sm font-medium text-gray-800">₱28,500</td>
-                            <td class="py-3 text-sm text-gray-600">₱4,275</td>
-                            <td class="py-3 text-sm font-semibold text-gray-800">₱24,225</td>
-                            <td class="py-3">
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
-                                    Pending
-                                </span>
-                            </td>
-                            <td class="py-3">
-                                <div class="flex items-center gap-2">
-                                    <button
-                                        class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
-                                        <i class="fas fa-edit text-xs"></i>
-                                        Review
-                                    </button>
-                                    <button
-                                        class="text-sm text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2.5 py-1 rounded-lg transition-colors duration-200 border border-green-200 flex items-center gap-1">
-                                        <i class="fas fa-check text-xs"></i>
-                                        Approve
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        <?php if (!empty($payrollEmployees)): ?>
+                            <?php foreach ($payrollEmployees as $emp): ?>
+                                <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors duration-150">
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <div
+                                                class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-medium">
+                                                <?= $emp['initials'] ?>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-800">
+                                                    <?= htmlspecialchars($emp['full_name']) ?>
+                                                </p>
+                                                <p class="text-xs text-gray-400"><?= htmlspecialchars($emp['position']) ?></p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600"><?= round($emp['total_regular_hours']) ?></td>
+                                    <td class="py-3 text-sm text-gray-600"><?= round($emp['total_overtime_hours']) ?></td>
+                                    <td class="py-3 text-sm font-medium text-gray-800">
+                                        <?= formatPayrollCurrency($emp['gross_pay']) ?>
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600">
+                                        <?= formatPayrollCurrency($emp['total_deductions']) ?>
+                                    </td>
+                                    <td class="py-3 text-sm font-semibold text-gray-800">
+                                        <?= formatPayrollCurrency($emp['net_pay']) ?>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="Review(<?= $emp['id'] ?>)"
+                                                class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-2.5 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1">
+                                                <i class="fas fa-receipt text-xs"></i>
+                                                Review
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" class="py-12 text-center text-gray-500">
+                                    <i class="fas fa-calculator text-4xl mb-3 text-gray-300"></i>
+                                    <p class="text-lg font-medium">No payroll data found</p>
+                                    <p class="text-sm">Click "Process Payroll" to generate payroll for this period</p>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -260,91 +181,109 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <p class="text-xs text-gray-500">Total Regular Hours</p>
-                        <p class="text-lg font-semibold text-gray-800">6,880 hrs</p>
+                        <p class="text-lg font-semibold text-gray-800"><?= round($payrollPageRegularHours) ?> hrs</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500">Total Overtime Hours</p>
-                        <p class="text-lg font-semibold text-gray-800">245 hrs</p>
+                        <p class="text-lg font-semibold text-gray-800"><?= round($payrollPageOvertimeHours) ?> hrs</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500">Average Net Pay</p>
-                        <p class="text-lg font-semibold text-gray-800">₱21,450</p>
+                        <p class="text-lg font-semibold text-gray-800">
+                            <?= formatPayrollCurrency($payrollPageAverageNet) ?>
+                        </p>
                     </div>
                 </div>
             </div>
 
             <!-- Pagination -->
-            <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p class="text-sm text-gray-500">Showing <span class="font-medium">1-4</span> of <span
-                        class="font-medium">86</span> employees</p>
-                <div class="flex items-center gap-2">
-                    <button
-                        class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50"
-                        disabled>
-                        <i class="fas fa-chevron-left text-xs"></i>
-                    </button>
-                    <button
-                        class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-gray-800 text-white">1</button>
-                    <button
-                        class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors duration-200">2</button>
-                    <button
-                        class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors duration-200">3</button>
-                    <span class="text-gray-400">...</span>
-                    <button
-                        class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors duration-200">22</button>
-                    <button
-                        class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors duration-200">
-                        <i class="fas fa-chevron-right text-xs"></i>
-                    </button>
+            <?php if ($payrollTotalPages > 1): ?>
+                <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <p class="text-sm text-gray-500">
+                        Showing <span
+                            class="font-medium"><?= min(1 + ($payrollPage - 1) * $payrollPerPage, $payrollTotalFiltered) ?>-<?= min($payrollPage * $payrollPerPage, $payrollTotalFiltered) ?></span>
+                        of <span class="font-medium"><?= $payrollTotalFiltered ?></span> employees
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <?php if ($payrollPage > 1): ?>
+                            <a href="?tab=payroll&payroll_page=<?= $payrollPage - 1 ?>&payroll_status=<?= urlencode($payrollStatusFilter) ?>&payroll_department=<?= urlencode($payrollDepartmentFilter) ?>"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors duration-200">
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </a>
+                        <?php else: ?>
+                            <button
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
+                                disabled>
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </button>
+                        <?php endif; ?>
+
+                        <?php for ($i = 1; $i <= min(5, $payrollTotalPages); $i++): ?>
+                            <a href="?tab=payroll&payroll_page=<?= $i ?>&payroll_status=<?= urlencode($payrollStatusFilter) ?>&payroll_department=<?= urlencode($payrollDepartmentFilter) ?>"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg <?= $i == $payrollPage ? 'bg-gray-800 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?> transition-colors duration-200">
+                                <?= $i ?>
+                            </a>
+                        <?php endfor; ?>
+
+                        <?php if ($payrollPage < $payrollTotalPages): ?>
+                            <a href="?tab=payroll&payroll_page=<?= $payrollPage + 1 ?>&payroll_status=<?= urlencode($payrollStatusFilter) ?>&payroll_department=<?= urlencode($payrollDepartmentFilter) ?>"
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors duration-200">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </a>
+                        <?php else: ?>
+                            <button
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
+                                disabled>
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </button>
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
 
     <!-- Payroll Actions -->
-    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <button
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+        <button onclick="generatePayslips()"
             class="p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-left flex items-start gap-3">
             <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center shrink-0">
                 <i class="fas fa-file-invoice text-gray-600"></i>
             </div>
             <div>
                 <p class="text-sm font-medium text-gray-800">Generate Payslips</p>
-                <p class="text-xs text-gray-500 mt-1">PDF format</p>
+                <p class="text-xs text-gray-500 mt-1">PDF format for all processed employees</p>
             </div>
         </button>
 
-        <button
-            class="p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-left flex items-start gap-3">
-            <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center shrink-0">
-                <i class="fas fa-chart-bar text-gray-600"></i>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-800">Payroll Report</p>
-                <p class="text-xs text-gray-500 mt-1">Export summary</p>
-            </div>
-        </button>
-
-        <button
-            class="p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-left flex items-start gap-3">
-            <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center shrink-0">
-                <i class="fas fa-bank text-gray-600"></i>
-            </div>
-            <div>
-                <p class="text-sm font-medium text-gray-800">Bank File</p>
-                <p class="text-xs text-gray-500 mt-1">For payroll transfer</p>
-            </div>
-        </button>
-
-        <button
+        <button onclick="viewPayrollHistory()"
             class="p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 text-left flex items-start gap-3">
             <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center shrink-0">
                 <i class="fas fa-history text-gray-600"></i>
             </div>
             <div>
                 <p class="text-sm font-medium text-gray-800">Payroll History</p>
-                <p class="text-xs text-gray-500 mt-1">View previous runs</p>
+                <p class="text-xs text-gray-500 mt-1">View previous payroll runs</p>
             </div>
         </button>
     </div>
 </div>
+
+<script>
+    function applyPayrollFilter() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', 'payroll');
+        url.searchParams.set('payroll_page', '1');
+
+        const status = document.querySelector('select[name="payroll_status"]')?.value;
+        const dept = document.querySelector('select[name="payroll_department"]')?.value;
+
+        if (status) url.searchParams.set('payroll_status', status);
+        else url.searchParams.delete('payroll_status');
+
+        if (dept) url.searchParams.set('payroll_department', dept);
+        else url.searchParams.delete('payroll_department');
+
+        window.location.href = url.toString();
+    }
+</script>

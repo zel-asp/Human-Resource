@@ -203,11 +203,11 @@
         <!-- Action Buttons - FIXED -->
         <div class="mt-6 flex justify-end gap-2 sticky bottom-0 bg-white pt-2 border-t">
             <!-- View Full History Button (Styled properly) -->
-            <button onclick="window.openModal('allAttendanceModal')"
+            <a href="/?tab=attendance"
                 class="bg-primary/10 text-primary hover:bg-primary/20 px-4 py-2 rounded-md text-sm font-medium transition flex items-center gap-2">
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 Full History
-            </button>
+            </a>
 
             <button
                 class="close-modal bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 transition"

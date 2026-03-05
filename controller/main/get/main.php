@@ -57,7 +57,7 @@ try {
 
 try {
     $employeesForBenefits = $db->query(
-        "SELECT id, full_name, employee_number, position, department, status
+        "SELECT id, full_name, employee_number, position, department, status, benefit_status 
         FROM employees 
         WHERE status = 'Active' OR status = 'Onboarding' OR status = 'Probationary'
         ORDER BY full_name ASC"
@@ -2001,17 +2001,17 @@ try {
     }
 
     if ($analyticsFemaleCount + $analyticsMaleCount == 0) {
-        $analyticsFemalePct = 52;
-        $analyticsMalePct = 48;
-        $analyticsFemaleCount = 81;
-        $analyticsMaleCount = 75;
+        $analyticsFemalePct = 0;
+        $analyticsMalePct = 0;
+        $analyticsFemaleCount = 0;
+        $analyticsMaleCount = 0;
     }
 
 } catch (\Throwable $th) {
-    $analyticsFemalePct = 52;
-    $analyticsMalePct = 48;
-    $analyticsFemaleCount = 81;
-    $analyticsMaleCount = 75;
+    $analyticsFemalePct = 0;
+    $analyticsMalePct = 0;
+    $analyticsFemaleCount = 0;
+    $analyticsMaleCount = 0;
     error_log("Error fetching gender data: " . $th->getMessage());
 }
 
@@ -2047,15 +2047,15 @@ try {
     }
 
     if ($analyticsAge18_30 + $analyticsAge31_45 + $analyticsAge46 == 0) {
-        $analyticsAge18_30 = 45;
-        $analyticsAge31_45 = 35;
-        $analyticsAge46 = 20;
+        $analyticsAge18_30 = 0;
+        $analyticsAge31_45 = 0;
+        $analyticsAge46 = 0;
     }
 
 } catch (\Throwable $th) {
-    $analyticsAge18_30 = 45;
-    $analyticsAge31_45 = 35;
-    $analyticsAge46 = 20;
+    $analyticsAge18_30 = 0;
+    $analyticsAge31_45 = 0;
+    $analyticsAge46 = 0;
     error_log("Error fetching age data: " . $th->getMessage());
 }
 
@@ -2091,20 +2091,1402 @@ try {
     }
 
     if ($analyticsTenureLess1 + $analyticsTenure1to3 + $analyticsTenure3plus == 0) {
-        $analyticsTenureLess1 = 28;
-        $analyticsTenure1to3 = 42;
-        $analyticsTenure3plus = 30;
+        $analyticsTenureLess1 = 0;
+        $analyticsTenure1to3 = 0;
+        $analyticsTenure3plus = 0;
     }
 
 } catch (\Throwable $th) {
-    $analyticsTenureLess1 = 28;
-    $analyticsTenure1to3 = 42;
-    $analyticsTenure3plus = 30;
+    $analyticsTenureLess1 = 0;
+    $analyticsTenure1to3 = 0;
+    $analyticsTenure3plus = 0;
     error_log("Error fetching tenure data: " . $th->getMessage());
 }
 
 // Last sync time
 $analyticsLastSync = date('M j, Y h:i A');
+
+
+// ============================================
+// SUCCESSION PLANNING SECTION
+// ============================================
+
+// Pagination
+$successionPage = isset($_GET['succession_page']) ? max(1, (int) $_GET['succession_page']) : 1;
+$successionPerPage = 1;
+$successionOffset = ($successionPage - 1) * $successionPerPage;
+
+// Filter parameters
+$successionDeptFilter = isset($_GET['succession_dept']) ? $_GET['succession_dept'] : '';
+$successionPositionFilter = isset($_GET['succession_position']) ? $_GET['succession_position'] : '';
+$successionSortFilter = isset($_GET['succession_sort']) ? $_GET['succession_sort'] : 'readiness';
+
+// Get distinct departments for filter
+try {
+    $successionDepartments = $db->query("
+        SELECT DISTINCT department 
+        FROM employees 
+        WHERE department IS NOT NULL AND department != ''
+        ORDER BY department
+    ")->find();
+} catch (\Throwable $th) {
+    $successionDepartments = [];
+    error_log("Error fetching departments: " . $th->getMessage());
+}
+
+// Build WHERE clause for filters
+$successionWhereConditions = [];
+$successionParams = [];
+
+if (!empty($successionDeptFilter)) {
+    $successionWhereConditions[] = "e.department = ?";
+    $successionParams[] = $successionDeptFilter;
+}
+
+// Base condition: employees who are ready for promotion (completed tasks, trainings, no gaps)
+$successionBaseCondition = "
+    AND e.status IN ('Active', 'Regular', 'Probationary')
+    AND NOT EXISTS (
+        SELECT 1 FROM tasks t 
+        WHERE t.assigned_to = e.id 
+        AND t.status != 'Completed'
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM training_schedule ts 
+        WHERE ts.employee_id = e.id 
+        AND ts.status = 'Scheduled'
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM competency_assessments ca 
+        JOIN competencies c ON ca.competency_id = c.id
+        WHERE ca.employee_id = e.id 
+        AND ca.proficiency_level < c.required_level
+    )
+";
+
+$successionWhereClause = !empty($successionWhereConditions)
+    ? "WHERE " . implode(" AND ", $successionWhereConditions) . " $successionBaseCondition"
+    : "WHERE 1=1 $successionBaseCondition";
+
+// Build ORDER BY clause
+switch ($successionSortFilter) {
+    case 'department':
+        $successionOrderBy = "ORDER BY e.department, e.full_name";
+        break;
+    case 'name':
+        $successionOrderBy = "ORDER BY e.full_name";
+        break;
+    case 'date':
+        $successionOrderBy = "ORDER BY e.updated_at DESC";
+        break;
+    case 'readiness':
+    default:
+        $successionOrderBy = "ORDER BY readiness_score DESC, e.full_name";
+        break;
+}
+
+// Get total candidates count
+try {
+    $totalCandidatesSql = "
+        SELECT COUNT(DISTINCT e.id) as count 
+        FROM employees e
+        $successionWhereClause
+    ";
+    $totalCandidates = $db->query($totalCandidatesSql, $successionParams)->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $totalCandidates = 0;
+    error_log("Error fetching total candidates: " . $th->getMessage());
+}
+
+// Get succession candidates with all metrics
+try {
+    $successionCandidates = $db->query("
+        SELECT 
+            e.*,
+            -- Task completion metrics
+            COALESCE((
+                SELECT COUNT(*) FROM tasks 
+                WHERE assigned_to = e.id
+            ), 0) as total_tasks,
+            COALESCE((
+                SELECT COUNT(*) FROM tasks 
+                WHERE assigned_to = e.id AND status = 'Completed'
+            ), 0) as completed_tasks,
+            -- Training metrics
+            COALESCE((
+                SELECT COUNT(*) FROM training_schedule 
+                WHERE employee_id = e.id
+            ), 0) as total_trainings,
+            COALESCE((
+                SELECT COUNT(*) FROM training_schedule 
+                WHERE employee_id = e.id AND status = 'Completed'
+            ), 0) as completed_trainings,
+            -- Competency metrics
+            COALESCE((
+                SELECT COUNT(*) FROM competencies c
+                WHERE c.id IN (
+                    SELECT competency_id FROM competency_assessments 
+                    WHERE employee_id = e.id AND status = 'Passed'
+                )
+            ), 0) as passed_competencies,
+            COALESCE((
+                SELECT COUNT(*) FROM competencies
+            ), 0) as total_competencies,
+            -- Last training date
+            (
+                SELECT MAX(end_date) FROM training_schedule 
+                WHERE employee_id = e.id AND status = 'Completed'
+            ) as last_training_date,
+            -- Readiness score (custom calculation)
+            (
+                (
+                    COALESCE((
+                        SELECT COUNT(*) FROM tasks 
+                        WHERE assigned_to = e.id AND status = 'Completed'
+                    ), 0) * 100.0 / 
+                    NULLIF((
+                        SELECT COUNT(*) FROM tasks 
+                        WHERE assigned_to = e.id
+                    ), 0)
+                ) +
+                (
+                    COALESCE((
+                        SELECT COUNT(*) FROM training_schedule 
+                        WHERE employee_id = e.id AND status = 'Completed'
+                    ), 0) * 100.0 / 
+                    NULLIF((
+                        SELECT COUNT(*) FROM training_schedule 
+                        WHERE employee_id = e.id
+                    ), 0)
+                ) +
+                (
+                    COALESCE((
+                        SELECT COUNT(*) FROM competency_assessments ca
+                        JOIN competencies c ON ca.competency_id = c.id
+                        WHERE ca.employee_id = e.id AND ca.proficiency_level >= c.required_level
+                    ), 0) * 100.0 / 
+                    NULLIF((SELECT COUNT(*) FROM competencies), 0)
+                )
+            ) / 3 as readiness_score,
+            -- Gap check
+            CASE 
+                WHEN NOT EXISTS (
+                    SELECT 1 FROM competency_assessments ca 
+                    JOIN competencies c ON ca.competency_id = c.id
+                    WHERE ca.employee_id = e.id AND ca.proficiency_level < c.required_level
+                ) THEN true
+                ELSE false
+            END as no_competency_gaps
+        FROM employees e
+        $successionWhereClause
+        $successionOrderBy
+        LIMIT $successionPerPage OFFSET $successionOffset
+    ", $successionParams)->find();
+} catch (\Throwable $th) {
+    $successionCandidates = [];
+    error_log("Error fetching succession candidates: " . $th->getMessage());
+}
+
+$totalSuccessionPages = ceil($totalCandidates / $successionPerPage);
+
+// Get department readiness stats
+try {
+    $deptReadiness = $db->query("
+        SELECT 
+            e.department,
+            COUNT(DISTINCT e.id) as candidate_count
+        FROM employees e
+        WHERE e.status IN ('Active', 'Regular', 'Probationary')
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t 
+            WHERE t.assigned_to = e.id AND t.status != 'Completed'
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM training_schedule ts 
+            WHERE ts.employee_id = e.id AND ts.status = 'Scheduled'
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM competency_assessments ca 
+            JOIN competencies c ON ca.competency_id = c.id
+            WHERE ca.employee_id = e.id AND ca.proficiency_level < c.required_level
+        )
+        GROUP BY e.department
+        ORDER BY candidate_count DESC
+        LIMIT 3
+    ")->find();
+} catch (\Throwable $th) {
+    $deptReadiness = [];
+    error_log("Error fetching department readiness: " . $th->getMessage());
+}
+
+// Get total training completions count
+try {
+    $totalTrainingsCompleted = $db->query("
+        SELECT COUNT(*) as count 
+        FROM training_schedule 
+        WHERE status = 'Completed'
+    ")->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $totalTrainingsCompleted = 0;
+    error_log("Error fetching total trainings: " . $th->getMessage());
+}
+
+// Get employees with no competency gaps
+try {
+    $noGapEmployees = $db->query("
+        SELECT COUNT(DISTINCT e.id) as count
+        FROM employees e
+        WHERE e.status IN ('Active', 'Regular', 'Probationary')
+        AND NOT EXISTS (
+            SELECT 1 FROM competency_assessments ca 
+            JOIN competencies c ON ca.competency_id = c.id
+            WHERE ca.employee_id = e.id AND ca.proficiency_level < c.required_level
+        )
+    ")->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $noGapEmployees = 0;
+    error_log("Error fetching no gap employees: " . $th->getMessage());
+}
+
+// Readiness summary stats
+$readyNow = 0;
+$ready1to3 = 0;
+$ready3to6 = 0;
+
+foreach ($successionCandidates as $candidate) {
+    $score = $candidate['readiness_score'] ?? 0;
+    if ($score >= 90) {
+        $readyNow++;
+    } elseif ($score >= 70) {
+        $ready1to3++;
+    } else {
+        $ready3to6++;
+    }
+}
+
+// ============================================
+// SUCCESSION PLANNING SECTION
+// ============================================
+
+// Pagination - USING 5 PER PAGE (not 1)
+$successionPage = isset($_GET['succession_page']) ? max(1, (int) $_GET['succession_page']) : 1;
+$successionPerPage = 1;
+$successionOffset = ($successionPage - 1) * $successionPerPage;
+
+// Filter parameters
+$successionDepartmentFilter = isset($_GET['succession_dept']) ? $_GET['succession_dept'] : '';
+$successionPositionFilter = isset($_GET['succession_position']) ? $_GET['succession_position'] : '';
+$successionSortBy = isset($_GET['succession_sort']) ? $_GET['succession_sort'] : 'name';
+
+// Get distinct departments for filter dropdown
+try {
+    $successionDepartments = $db->query("
+        SELECT DISTINCT department 
+        FROM employees 
+        WHERE department IS NOT NULL AND department != ''
+        ORDER BY department
+    ")->find();
+} catch (\Throwable $th) {
+    $successionDepartments = [];
+    error_log("Error fetching departments: " . $th->getMessage());
+}
+
+// ============================================
+// SUCCESSION STATS
+// ============================================
+
+// Ready for Promotion (fully qualified candidates)
+try {
+    $successionReadyCount = $db->query("
+        SELECT COUNT(DISTINCT e.id) as count
+        FROM employees e
+        WHERE e.status IN ('Active', 'Regular', 'Probationary')
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t 
+            WHERE t.assigned_to = e.id 
+            AND t.status != 'Completed'
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM training_schedule ts 
+            WHERE ts.employee_id = e.id 
+            AND ts.status != 'Completed'
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM competency_assessments ca
+            JOIN competencies c ON ca.competency_id = c.id
+            WHERE ca.employee_id = e.id
+            AND ca.proficiency_level < c.required_level
+        )
+        AND EXISTS (
+            SELECT 1 FROM tasks t WHERE t.assigned_to = e.id
+        )
+        AND EXISTS (
+            SELECT 1 FROM training_schedule ts WHERE ts.employee_id = e.id
+        )
+        AND EXISTS (
+            SELECT 1 FROM competency_assessments ca WHERE ca.employee_id = e.id
+        )
+    ")->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $successionReadyCount = 0;
+    error_log("Error counting ready candidates: " . $th->getMessage());
+}
+
+// Total Training Completed
+try {
+    $successionTotalTrainings = $db->query("
+        SELECT COUNT(*) as count
+        FROM training_schedule 
+        WHERE status = 'Completed'
+    ")->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $successionTotalTrainings = 0;
+    error_log("Error counting trainings: " . $th->getMessage());
+}
+
+// No Competency Gaps
+try {
+    $noGapEmployees = $db->query("
+        SELECT e.id
+        FROM employees e
+        WHERE e.status IN ('Active', 'Regular', 'Probationary')
+        AND NOT EXISTS (
+            SELECT 1
+            FROM competency_assessments ca
+            JOIN competencies c ON ca.competency_id = c.id
+            WHERE ca.employee_id = e.id
+            AND ca.proficiency_level < c.required_level
+        )
+        AND EXISTS (
+            SELECT 1
+            FROM competency_assessments ca
+            WHERE ca.employee_id = e.id
+        )
+    ")->find();
+
+    $successionNoGapsCount = count($noGapEmployees);
+} catch (\Throwable $th) {
+    $successionNoGapsCount = 0;
+    error_log("Error counting no gap employees: " . $th->getMessage());
+}
+
+// ============================================
+// SUCCESSION CANDIDATES - Only fully qualified
+// ============================================
+
+// Get total fully qualified candidates count for pagination
+try {
+    $successionTotalCandidates = $db->query("
+        SELECT COUNT(DISTINCT e.id) as count
+        FROM employees e
+        WHERE e.status IN ('Active', 'Regular', 'Probationary')
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t 
+            WHERE t.assigned_to = e.id 
+            AND t.status != 'Completed'
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM training_schedule ts 
+            WHERE ts.employee_id = e.id 
+            AND ts.status != 'Completed'
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM competency_assessments ca
+            JOIN competencies c ON ca.competency_id = c.id
+            WHERE ca.employee_id = e.id
+            AND ca.proficiency_level < c.required_level
+        )
+        AND EXISTS (
+            SELECT 1 FROM tasks t WHERE t.assigned_to = e.id
+        )
+        AND EXISTS (
+            SELECT 1 FROM training_schedule ts WHERE ts.employee_id = e.id
+        )
+        AND EXISTS (
+            SELECT 1 FROM competency_assessments ca WHERE ca.employee_id = e.id
+        )
+    ")->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $successionTotalCandidates = 0;
+    error_log("Error counting fully qualified candidates: " . $th->getMessage());
+}
+
+// Get paginated fully qualified candidates
+try {
+    $orderBy = match ($successionSortBy) {
+        'department' => "e.department ASC, e.full_name ASC",
+        'name' => "e.full_name ASC",
+        'date' => "last_training_date DESC NULLS LAST, e.full_name ASC",
+        default => "e.full_name ASC"
+    };
+
+    // Build WHERE clause for department filter
+    $deptFilterSql = "";
+    $deptFilterParams = [];
+    if (!empty($successionDepartmentFilter)) {
+        $deptFilterSql = "AND e.department = ?";
+        $deptFilterParams[] = $successionDepartmentFilter;
+    }
+
+    $successionCandidates = $db->query("
+        SELECT 
+            e.id,
+            e.full_name,
+            e.position,
+            e.department,
+            e.hired_date,
+            
+            -- Task completion
+            COALESCE((
+                SELECT COUNT(*) FROM tasks t WHERE t.assigned_to = e.id
+            ), 0) as total_tasks,
+            COALESCE((
+                SELECT COUNT(*) FROM tasks t 
+                WHERE t.assigned_to = e.id AND t.status = 'Completed'
+            ), 0) as completed_tasks,
+            
+            -- Training completion
+            COALESCE((
+                SELECT COUNT(*) FROM training_schedule ts WHERE ts.employee_id = e.id
+            ), 0) as total_trainings,
+            COALESCE((
+                SELECT COUNT(*) FROM training_schedule ts 
+                WHERE ts.employee_id = e.id AND ts.status = 'Completed'
+            ), 0) as completed_trainings,
+            
+            -- Last training date
+            (
+                SELECT MAX(ts.end_date) FROM training_schedule ts 
+                WHERE ts.employee_id = e.id AND ts.status = 'Completed'
+            ) as last_training_date,
+            
+            -- Competency assessment
+            COALESCE((
+                SELECT COUNT(*) FROM competency_assessments ca WHERE ca.employee_id = e.id
+            ), 0) as total_assessments,
+            COALESCE((
+                SELECT COUNT(*) FROM competency_assessments ca 
+                WHERE ca.employee_id = e.id AND ca.status = 'Passed'
+            ), 0) as passed_assessments,
+            
+            -- All tasks completed flag
+            CASE 
+                WHEN NOT EXISTS (
+                    SELECT 1 FROM tasks t 
+                    WHERE t.assigned_to = e.id AND t.status != 'Completed'
+                )
+                AND EXISTS (
+                    SELECT 1 FROM tasks t WHERE t.assigned_to = e.id
+                )
+                THEN 1 ELSE 0 
+            END as all_tasks_complete,
+            
+            -- All trainings completed flag
+            CASE 
+                WHEN NOT EXISTS (
+                    SELECT 1 FROM training_schedule ts 
+                    WHERE ts.employee_id = e.id AND ts.status != 'Completed'
+                )
+                AND EXISTS (
+                    SELECT 1 FROM training_schedule ts WHERE ts.employee_id = e.id
+                )
+                THEN 1 ELSE 0 
+            END as all_trainings_complete,
+            
+            -- No competency gaps flag
+            CASE 
+                WHEN NOT EXISTS (
+                    SELECT 1
+                    FROM competency_assessments ca
+                    JOIN competencies c ON ca.competency_id = c.id
+                    WHERE ca.employee_id = e.id
+                    AND ca.proficiency_level < c.required_level
+                )
+                AND EXISTS (
+                    SELECT 1 FROM competency_assessments ca WHERE ca.employee_id = e.id
+                )
+                THEN 1 ELSE 0 
+            END as no_competency_gaps,
+            
+            -- Readiness status (always 'ready_now' for these candidates)
+            'ready_now' as readiness_status,
+            
+            CONCAT(LEFT(e.full_name, 1), COALESCE(RIGHT(LEFT(e.full_name, INSTR(e.full_name, ' ') + 1), 1), RIGHT(e.full_name, 1))) as initials
+            
+        FROM employees e
+        WHERE e.status IN ('Active', 'Regular', 'Probationary')
+        AND NOT EXISTS (
+            SELECT 1 FROM tasks t 
+            WHERE t.assigned_to = e.id 
+            AND t.status != 'Completed'
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM training_schedule ts 
+            WHERE ts.employee_id = e.id 
+            AND ts.status != 'Completed'
+        )
+        AND NOT EXISTS (
+            SELECT 1
+            FROM competency_assessments ca
+            JOIN competencies c ON ca.competency_id = c.id
+            WHERE ca.employee_id = e.id
+            AND ca.proficiency_level < c.required_level
+        )
+        AND EXISTS (
+            SELECT 1 FROM tasks t WHERE t.assigned_to = e.id
+        )
+        AND EXISTS (
+            SELECT 1 FROM training_schedule ts WHERE ts.employee_id = e.id
+        )
+        AND EXISTS (
+            SELECT 1 FROM competency_assessments ca WHERE ca.employee_id = e.id
+        )
+        $deptFilterSql
+        ORDER BY $orderBy
+        LIMIT $successionPerPage OFFSET $successionOffset
+    ", $deptFilterParams)->find();
+
+} catch (\Throwable $th) {
+    $successionCandidates = [];
+    error_log("Error fetching fully qualified candidates: " . $th->getMessage());
+}
+
+$successionTotalPages = ceil($successionTotalCandidates / $successionPerPage);
+
+// ============================================
+// DEPARTMENT SUMMARY
+// ============================================
+try {
+    $successionDeptSummary = $db->query("
+        SELECT 
+            e.department,
+            COUNT(DISTINCT CASE 
+                WHEN NOT EXISTS (
+                    SELECT 1 FROM tasks t 
+                    WHERE t.assigned_to = e.id AND t.status != 'Completed'
+                )
+                AND NOT EXISTS (
+                    SELECT 1 FROM training_schedule ts 
+                    WHERE ts.employee_id = e.id AND ts.status != 'Completed'
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM competency_assessments ca
+                    JOIN competencies c ON ca.competency_id = c.id
+                    WHERE ca.employee_id = e.id
+                    AND ca.proficiency_level < c.required_level
+                )
+                AND EXISTS (SELECT 1 FROM tasks t WHERE t.assigned_to = e.id)
+                AND EXISTS (SELECT 1 FROM training_schedule ts WHERE ts.employee_id = e.id)
+                AND EXISTS (SELECT 1 FROM competency_assessments ca WHERE ca.employee_id = e.id)
+                THEN e.id 
+            END) as ready_candidates
+        FROM employees e
+        WHERE e.department IS NOT NULL AND e.department != ''
+        GROUP BY e.department
+        HAVING ready_candidates > 0
+        ORDER BY ready_candidates DESC
+        LIMIT 3
+    ")->find();
+} catch (\Throwable $th) {
+    $successionDeptSummary = [];
+    error_log("Error fetching dept summary: " . $th->getMessage());
+}
+
+// ============================================
+// READINESS SUMMARY
+// ============================================
+// Since we're only showing fully qualified candidates, readiness summary is simplified
+$successionReadyNow = $successionReadyCount;
+$successionReadySoon = 0;
+$successionInProgress = 0;
+
+// Format functions
+function getReadinessBadge($status)
+{
+    return match ($status) {
+        'ready_now' => ['text' => 'Ready Now', 'class' => 'bg-green-50 text-green-700 border-green-200'],
+        'ready_soon' => ['text' => 'Ready Soon', 'class' => 'bg-amber-50 text-amber-700 border-amber-200'],
+        default => ['text' => 'In Progress', 'class' => 'bg-blue-50 text-blue-700 border-blue-200']
+    };
+}
+
+function getReadinessIcon($status)
+{
+    return match ($status) {
+        'ready_now' => 'fa-check-circle',
+        'ready_soon' => 'fa-clock',
+        default => 'fa-spinner'
+    };
+}
+
+// ============================================
+// CLAIMS & REIMBURSEMENT SECTION
+// ============================================
+
+// Pagination for claims
+$claimsPage = isset($_GET['claims_page']) ? max(1, (int) $_GET['claims_page']) : 1;
+$claimsPerPage = 10;
+$claimsOffset = ($claimsPage - 1) * $claimsPerPage;
+
+// Filter parameters
+$claimsStatusFilter = isset($_GET['claims_status']) ? $_GET['claims_status'] : 'all';
+$claimsDateFilter = isset($_GET['claims_date']) ? $_GET['claims_date'] : '30';
+$claimsActiveTab = isset($_GET['panel']) && $_GET['panel'] == 'history' ? 'history' : 'new';
+
+// Calculate date range based on filter
+$claimsDateCondition = "";
+$claimsParams = [];
+
+if ($claimsDateFilter === '30') {
+    $claimsDateCondition = "AND expense_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+} elseif ($claimsDateFilter === '90') {
+    $claimsDateCondition = "AND expense_date >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)";
+} elseif ($claimsDateFilter === '180') {
+    $claimsDateCondition = "AND expense_date >= DATE_SUB(CURDATE(), INTERVAL 180 DAY)";
+} elseif ($claimsDateFilter === '365') {
+    $claimsDateCondition = "AND expense_date >= DATE_SUB(CURDATE(), INTERVAL 365 DAY)";
+}
+
+// Status condition
+$claimsStatusCondition = "";
+if ($claimsStatusFilter !== 'all') {
+    $claimsStatusCondition = "AND status = ?";
+    $claimsParams[] = $claimsStatusFilter;
+}
+
+// ============================================
+// CLAIMS STATS
+// ============================================
+
+// Pending claims count and total
+try {
+    $claimsPendingStats = $db->query("
+        SELECT 
+            COUNT(*) as count,
+            COALESCE(SUM(amount), 0) as total
+        FROM expense_claims 
+        WHERE status = 'Pending'
+    ")->fetch_one();
+
+    $claimsPendingCount = $claimsPendingStats['count'] ?? 0;
+    $claimsPendingTotal = $claimsPendingStats['total'] ?? 0;
+} catch (\Throwable $th) {
+    $claimsPendingCount = 8;
+    $claimsPendingTotal = 24500;
+    error_log("Error fetching pending claims: " . $th->getMessage());
+}
+
+// Approved claims count and total
+try {
+    $claimsApprovedStats = $db->query("
+        SELECT 
+            COUNT(*) as count,
+            COALESCE(SUM(amount), 0) as total
+        FROM expense_claims 
+        WHERE status = 'Approved'
+    ")->fetch_one();
+
+    $claimsApprovedCount = $claimsApprovedStats['count'] ?? 0;
+    $claimsApprovedTotal = $claimsApprovedStats['total'] ?? 0;
+} catch (\Throwable $th) {
+    $claimsApprovedCount = 15;
+    $claimsApprovedTotal = 45200;
+    error_log("Error fetching approved claims: " . $th->getMessage());
+}
+
+// Processed this month claims
+try {
+    $claimsProcessedStats = $db->query("
+        SELECT 
+            COUNT(*) as count,
+            COALESCE(SUM(amount), 0) as total
+        FROM expense_claims 
+        WHERE status IN ('Approved', 'Paid')
+        AND MONTH(expense_date) = MONTH(CURDATE())
+        AND YEAR(expense_date) = YEAR(CURDATE())
+    ")->fetch_one();
+
+    $claimsProcessedCount = $claimsProcessedStats['count'] ?? 0;
+    $claimsProcessedTotal = $claimsProcessedStats['total'] ?? 0;
+} catch (\Throwable $th) {
+    $claimsProcessedCount = 23;
+    $claimsProcessedTotal = 67800;
+    error_log("Error fetching processed claims: " . $th->getMessage());
+}
+
+// ============================================
+// CLAIMS LIST
+// ============================================
+
+// Get total claims count for pagination
+try {
+    $claimsTotalSql = "
+        SELECT COUNT(*) as count 
+        FROM expense_claims 
+        WHERE 1=1 
+        $claimsStatusCondition
+        $claimsDateCondition
+    ";
+    $claimsTotal = $db->query($claimsTotalSql, $claimsParams)->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $claimsTotal = 46;
+    error_log("Error fetching total claims: " . $th->getMessage());
+}
+
+// Get paginated claims
+try {
+    $claimsList = $db->query("
+        SELECT 
+            c.*,
+            e.full_name as employee_name,
+            e.employee_number,
+            e.id as employee_id,
+            DATE_FORMAT(c.expense_date, '%b %e, %Y') as formatted_date,
+            DATE_FORMAT(c.created_at, '%b %e, %Y') as formatted_created,
+            CONCAT('CL-', YEAR(c.created_at), '-', LPAD(c.id, 4, '0')) as claim_number,
+            CONCAT(LEFT(e.full_name, 1), COALESCE(RIGHT(LEFT(e.full_name, INSTR(e.full_name, ' ') + 1), 1), RIGHT(e.full_name, 1))) as initials
+        FROM expense_claims c
+        LEFT JOIN employees e ON c.employee_id = e.id
+        WHERE 1=1
+        $claimsStatusCondition
+        $claimsDateCondition
+        ORDER BY c.expense_date DESC, c.created_at DESC
+        LIMIT $claimsPerPage OFFSET $claimsOffset
+    ", $claimsParams)->find();
+} catch (\Throwable $th) {
+    $claimsList = [];
+    error_log("Error fetching claims: " . $th->getMessage());
+}
+
+$claimsTotalPages = ceil($claimsTotal / $claimsPerPage);
+
+// ============================================
+// CLAIMS STATS FOOTER
+// ============================================
+
+// Total pending amount from filtered list (for footer)
+$claimsTotalPendingAmount = 0;
+$claimsTotalApprovedAmount = 0;
+
+foreach ($claimsList as $claim) {
+    if ($claim['status'] == 'Pending') {
+        $claimsTotalPendingAmount += $claim['amount'];
+    } elseif ($claim['status'] == 'Approved') {
+        $claimsTotalApprovedAmount += $claim['amount'];
+    }
+}
+
+// Average claim amount
+try {
+    $claimsAverageAmount = $db->query("
+        SELECT AVG(amount) as avg_amount
+        FROM expense_claims 
+        WHERE 1=1
+        $claimsDateCondition
+    ")->fetch_one()['avg_amount'] ?? 1850;
+} catch (\Throwable $th) {
+    $claimsAverageAmount = 1850;
+    error_log("Error fetching average claim: " . $th->getMessage());
+}
+
+// Processing time (average days from submission to approval)
+try {
+    $claimsProcessingTime = $db->query("
+        SELECT AVG(DATEDIFF(approved_at, created_at)) as avg_days
+        FROM expense_claims 
+        WHERE status IN ('Approved', 'Paid')
+        AND approved_at IS NOT NULL
+        $claimsDateCondition
+    ")->fetch_one()['avg_days'] ?? 2.4;
+
+    $claimsProcessingTime = round($claimsProcessingTime, 1);
+} catch (\Throwable $th) {
+    $claimsProcessingTime = 2.4;
+    error_log("Error fetching processing time: " . $th->getMessage());
+}
+
+// Most common claim type
+try {
+    $claimsMostCommon = $db->query("
+        SELECT category, COUNT(*) as count
+        FROM expense_claims 
+        GROUP BY category
+        ORDER BY count DESC
+        LIMIT 1
+    ")->fetch_one();
+
+    $claimsMostCommonType = $claimsMostCommon['category'] ?? 'Meal Allowance';
+} catch (\Throwable $th) {
+    $claimsMostCommonType = 'Meal Allowance';
+    error_log("Error fetching most common type: " . $th->getMessage());
+}
+
+// This month total
+try {
+    $claimsMonthTotal = $db->query("
+        SELECT COALESCE(SUM(amount), 0) as total
+        FROM expense_claims 
+        WHERE MONTH(expense_date) = MONTH(CURDATE())
+        AND YEAR(expense_date) = YEAR(CURDATE())
+    ")->fetch_one()['total'] ?? 67800;
+} catch (\Throwable $th) {
+    $claimsMonthTotal = 67800;
+    error_log("Error fetching month total: " . $th->getMessage());
+}
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+function getClaimStatusClass($status)
+{
+    return match ($status) {
+        'Pending' => 'bg-yellow-50 text-yellow-700 border-yellow-200',
+        'Approved' => 'bg-green-50 text-green-700 border-green-200',
+        'Paid' => 'bg-blue-50 text-blue-700 border-blue-200',
+        'Rejected' => 'bg-red-50 text-red-700 border-red-200',
+        'Processing' => 'bg-blue-50 text-blue-700 border-blue-200',
+        default => 'bg-gray-50 text-gray-700 border-gray-200'
+    };
+}
+
+function getClaimIcon($category)
+{
+    $category = strtolower($category ?? '');
+    return match (true) {
+        str_contains($category, 'meal') || str_contains($category, 'food') || str_contains($category, 'dinner') => 'fa-utensils',
+        str_contains($category, 'transport') || str_contains($category, 'gas') => 'fa-taxi',
+        str_contains($category, 'medical') || str_contains($category, 'health') => 'fa-hospital',
+        str_contains($category, 'training') || str_contains($category, 'seminar') => 'fa-graduation-cap',
+        str_contains($category, 'travel') || str_contains($category, 'plane') => 'fa-plane',
+        str_contains($category, 'supplies') || str_contains($category, 'office') => 'fa-boxes',
+        str_contains($category, 'communication') || str_contains($category, 'internet') => 'fa-wifi',
+        default => 'fa-receipt'
+    };
+}
+
+// ============================================
+// HMO & BENEFITS ADMINISTRATION SECTION
+// ============================================
+
+// Pagination for benefits
+$hmoPage = isset($_GET['hmo_page']) ? max(1, (int) $_GET['hmo_page']) : 1;
+$hmoPerPage = 10; // Changed from 5 to 10
+$hmoOffset = ($hmoPage - 1) * $hmoPerPage;
+
+// Filter parameters
+$hmoProviderFilter = isset($_GET['hmo_provider']) ? $_GET['hmo_provider'] : '';
+$hmoStatusFilter = isset($_GET['hmo_status']) ? $_GET['hmo_status'] : '';
+
+// ============================================
+// HMO STATS
+// ============================================
+
+// Get total employees count
+try {
+    $hmoTotalEmployees = $db->query("
+        SELECT COUNT(*) as count 
+        FROM employees 
+        WHERE status IN ('Active', 'Regular', 'Probationary')
+    ")->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $hmoTotalEmployees = 0;
+    error_log("Error fetching total employees: " . $th->getMessage());
+}
+
+// Get enrolled employees count
+try {
+    $hmoEnrolledCount = $db->query("
+        SELECT COUNT(DISTINCT employee_id) as count
+        FROM employee_benefits
+    ")->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $hmoEnrolledCount = 0;
+    error_log("Error fetching enrolled count: " . $th->getMessage());
+}
+
+// Calculate coverage rate
+$hmoCoverageRate = $hmoTotalEmployees > 0 ? round(($hmoEnrolledCount / $hmoTotalEmployees) * 100) : 0;
+
+// Get pending enrollment count
+try {
+    $hmoPendingCount = $db->query("
+        SELECT COUNT(DISTINCT e.id) as count
+        FROM employees e
+        WHERE e.status IN ('Active', 'Regular', 'Probationary')
+        AND NOT EXISTS (
+            SELECT 1 FROM employee_benefits eb WHERE eb.employee_id = e.id
+        )
+    ")->fetch_one()['count'] ?? 0;
+} catch (\Throwable $th) {
+    $hmoPendingCount = 0;
+    error_log("Error fetching pending count: " . $th->getMessage());
+}
+
+// Get claims this month (from expense_claims table with medical/health category)
+try {
+    $hmoClaimsThisMonth = $db->query("
+        SELECT 
+            COUNT(*) as count,
+            COALESCE(SUM(amount), 0) as total
+        FROM expense_claims 
+        WHERE (category LIKE '%Medical%' OR category LIKE '%Health%' OR category LIKE '%HMO%')
+        AND MONTH(expense_date) = MONTH(CURDATE())
+        AND YEAR(expense_date) = YEAR(CURDATE())
+    ")->fetch_one();
+
+    $hmoClaimsCount = $hmoClaimsThisMonth['count'] ?? 0;
+    $hmoClaimsTotal = $hmoClaimsThisMonth['total'] ?? 0;
+} catch (\Throwable $th) {
+    $hmoClaimsCount = 0;
+    $hmoClaimsTotal = 0;
+    error_log("Error fetching claims: " . $th->getMessage());
+}
+
+// Get premium due (next payment)
+try {
+    $hmoPremiumDue = $db->query("
+        SELECT COALESCE(SUM(monthly_premium), 0) as total
+        FROM employee_benefits 
+        WHERE expiry_date >= CURDATE()
+        OR expiry_date IS NULL
+    ")->fetch_one()['total'] ?? 0;
+} catch (\Throwable $th) {
+    $hmoPremiumDue = 0;
+    error_log("Error fetching premium due: " . $th->getMessage());
+}
+
+// ============================================
+// COVERAGE SUMMARY (Active Plans)
+// ============================================
+try {
+    $hmoCoveragePlans = $db->query("
+        SELECT 
+            bp.provider_name,
+            bp.id as provider_id,
+            COUNT(DISTINCT eb.employee_id) as enrolled_count,
+            COALESCE(SUM(eb.monthly_premium), 0) as total_premium,
+            COALESCE(AVG(eb.coverage_amount), 0) as avg_coverage
+        FROM benefit_providers bp
+        LEFT JOIN employee_benefits eb ON bp.id = eb.provider_id
+        GROUP BY bp.id, bp.provider_name
+        ORDER BY enrolled_count DESC
+        LIMIT 3
+    ")->find();
+} catch (\Throwable $th) {
+    $hmoCoveragePlans = [];
+    error_log("Error fetching coverage plans: " . $th->getMessage());
+}
+
+// Calculate totals
+$hmoTotalMonthlyPremium = 0;
+$hmoCompanyShare = 0;
+$hmoEmployeeShare = 0;
+
+foreach ($hmoCoveragePlans as $plan) {
+    $hmoTotalMonthlyPremium += $plan['total_premium'];
+}
+$hmoCompanyShare = $hmoTotalMonthlyPremium * 0.7; // 70% company share
+$hmoEmployeeShare = $hmoTotalMonthlyPremium * 0.3; // 30% employee share
+
+// ============================================
+// EXPIRING SOON (Next 30 days)
+// ============================================
+try {
+    $hmoExpiringSoon = $db->query("
+        SELECT 
+            eb.*,
+            e.id as employee_id,
+            e.full_name,
+            e.position,
+            e.department,
+            bp.provider_name,
+            DATEDIFF(eb.expiry_date, CURDATE()) as days_until_expiry,
+            CONCAT(LEFT(e.full_name, 1), COALESCE(RIGHT(LEFT(e.full_name, INSTR(e.full_name, ' ') + 1), 1), RIGHT(e.full_name, 1))) as initials
+        FROM employee_benefits eb
+        JOIN employees e ON eb.employee_id = e.id
+        JOIN benefit_providers bp ON eb.provider_id = bp.id
+        WHERE eb.expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+        ORDER BY eb.expiry_date ASC
+        LIMIT 3
+    ")->find();
+} catch (\Throwable $th) {
+    $hmoExpiringSoon = [];
+    error_log("Error fetching expiring soon: " . $th->getMessage());
+}
+
+// ============================================
+// RECENT ENROLLMENTS
+// ============================================
+try {
+    $hmoRecentEnrollments = $db->query("
+        SELECT 
+            eb.*,
+            e.id as employee_id,
+            e.full_name,
+            e.position,
+            bp.provider_name,
+            DATEDIFF(CURDATE(), eb.created_at) as days_ago,
+            CASE 
+                WHEN eb.created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 'Processed'
+                ELSE 'Pending'
+            END as enrollment_status,
+            CONCAT(LEFT(e.full_name, 1), COALESCE(RIGHT(LEFT(e.full_name, INSTR(e.full_name, ' ') + 1), 1), RIGHT(e.full_name, 1))) as initials
+        FROM employee_benefits eb
+        JOIN employees e ON eb.employee_id = e.id
+        JOIN benefit_providers bp ON eb.provider_id = bp.id
+        ORDER BY eb.created_at DESC
+        LIMIT 3
+    ")->find();
+} catch (\Throwable $th) {
+    $hmoRecentEnrollments = [];
+    error_log("Error fetching recent enrollments: " . $th->getMessage());
+}
+
+// ============================================
+// BENEFITS LIST WITH PAGINATION
+// ============================================
+
+// Build WHERE clause for filters
+$hmoWhereConditions = [];
+$hmoParams = [];
+
+if (!empty($hmoProviderFilter)) {
+    $hmoWhereConditions[] = "bp.id = ?";
+    $hmoParams[] = $hmoProviderFilter;
+}
+
+if (!empty($hmoStatusFilter)) {
+    if ($hmoStatusFilter === 'active') {
+        $hmoWhereConditions[] = "(eb.expiry_date >= CURDATE() OR eb.expiry_date IS NULL)";
+    } elseif ($hmoStatusFilter === 'expiring') {
+        $hmoWhereConditions[] = "eb.expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)";
+    } elseif ($hmoStatusFilter === 'expired') {
+        $hmoWhereConditions[] = "eb.expiry_date < CURDATE()";
+    }
+}
+
+$hmoWhereClause = !empty($hmoWhereConditions) ? "WHERE " . implode(" AND ", $hmoWhereConditions) : "";
+
+// Debug: Check if employee_benefits has data
+$debugCheck = $db->query("SELECT COUNT(*) as count FROM employee_benefits")->fetch_one();
+error_log("Employee benefits count: " . ($debugCheck['count'] ?? 0));
+
+// Get total benefits count for pagination
+try {
+    $hmoTotalBenefits = $db->query("
+        SELECT COUNT(*) as count
+        FROM employee_benefits eb
+        JOIN employees e ON eb.employee_id = e.id
+        JOIN benefit_providers bp ON eb.provider_id = bp.id
+        " . (!empty($hmoWhereConditions) ? $hmoWhereClause : "")
+    ,
+        $hmoParams
+    )->fetch_one()['count'] ?? 0;
+
+    error_log("HMO Total Benefits: " . $hmoTotalBenefits);
+} catch (\Throwable $th) {
+    $hmoTotalBenefits = 0;
+    error_log("Error fetching total benefits: " . $th->getMessage());
+}
+
+// Get paginated benefits list
+try {
+    $hmoBenefitsList = $db->query("
+        SELECT 
+            eb.*,
+            e.id as employee_id,
+            e.full_name,
+            e.position,
+            e.department,
+            e.employee_number,
+            bp.provider_name,
+            bp.contact_info,
+            DATE_FORMAT(eb.effective_date, '%b %e, %Y') as formatted_effective,
+            DATE_FORMAT(eb.expiry_date, '%b %e, %Y') as formatted_expiry,
+            CASE 
+                WHEN eb.expiry_date IS NULL THEN 'bg-green-50 text-green-700 border-green-200'
+                WHEN eb.expiry_date < CURDATE() THEN 'bg-red-50 text-red-700 border-red-200'
+                WHEN eb.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                ELSE 'bg-green-50 text-green-700 border-green-200'
+            END as status_class,
+            CASE 
+                WHEN eb.expiry_date IS NULL THEN 'Active'
+                WHEN eb.expiry_date < CURDATE() THEN 'Expired'
+                WHEN eb.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 'Expiring Soon'
+                ELSE 'Active'
+            END as status_text,
+            CONCAT(LEFT(e.full_name, 1), COALESCE(RIGHT(LEFT(e.full_name, INSTR(e.full_name, ' ') + 1), 1), RIGHT(e.full_name, 1))) as initials
+        FROM employee_benefits eb
+        JOIN employees e ON eb.employee_id = e.id
+        JOIN benefit_providers bp ON eb.provider_id = bp.id
+        " . (!empty($hmoWhereConditions) ? $hmoWhereClause : "") . "
+        ORDER BY 
+            CASE 
+                WHEN eb.expiry_date IS NULL THEN 1
+                WHEN eb.expiry_date < CURDATE() THEN 4
+                WHEN eb.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 2
+                ELSE 3
+            END,
+            eb.expiry_date ASC,
+            eb.created_at DESC
+        LIMIT $hmoPerPage OFFSET $hmoOffset
+    ", $hmoParams)->find();
+
+    error_log("HMO Benefits List count: " . count($hmoBenefitsList));
+
+} catch (\Throwable $th) {
+    $hmoBenefitsList = [];
+    error_log("Error fetching benefits list: " . $th->getMessage());
+}
+
+$hmoTotalPages = ceil($hmoTotalBenefits / $hmoPerPage);
+
+// Get providers for filter dropdown
+try {
+    $hmoProviders = $db->query("
+        SELECT id, provider_name
+        FROM benefit_providers
+        ORDER BY provider_name
+    ")->find();
+} catch (\Throwable $th) {
+    $hmoProviders = [];
+    error_log("Error fetching providers: " . $th->getMessage());
+}
+
+// Format currency function for HMO
+function formatHmoCurrency($amount)
+{
+    return '₱' . number_format($amount, 0);
+}
+
+// ============================================
+// PAYROLL MANAGEMENT SECTION
+// ============================================
+
+// Get current date info
+$payrollToday = date('Y-m-d');
+$payrollCurrentDay = (int) date('d');
+$payrollCurrentMonth = date('m');
+$payrollCurrentYear = date('Y');
+
+// Determine current payroll period
+if ($payrollCurrentDay <= 5) {
+    // 1st cutoff (21st of previous month - 5th of current month)
+    $payrollPeriodStart = date('Y-m-21', strtotime('-1 month'));
+    $payrollPeriodEnd = date('Y-m-05');
+    $payrollPeriodLabel = date('M j', strtotime($payrollPeriodStart)) . ' - ' . date('M j, Y', strtotime($payrollPeriodEnd));
+    $payrollPayDate = date('Y-m-10'); // Pay on 10th
+    $payrollPeriodType = '1st Cutoff';
+} elseif ($payrollCurrentDay <= 20) {
+    // 2nd cutoff (6th - 20th of current month)
+    $payrollPeriodStart = date('Y-m-06');
+    $payrollPeriodEnd = date('Y-m-20');
+    $payrollPeriodLabel = date('M j', strtotime($payrollPeriodStart)) . ' - ' . date('M j, Y', strtotime($payrollPeriodEnd));
+    $payrollPayDate = date('Y-m-25'); // Pay on 25th
+    $payrollPeriodType = '2nd Cutoff';
+} else {
+    // 1st cutoff of next month (21st - end of month)
+    $payrollPeriodStart = date('Y-m-21');
+    $payrollPeriodEnd = date('Y-m-t');
+    $payrollPeriodLabel = date('M j', strtotime($payrollPeriodStart)) . ' - ' . date('M j, Y', strtotime($payrollPeriodEnd));
+    $payrollPayDate = date('Y-m-05', strtotime('+1 month')); // Pay on 5th of next month
+    $payrollPeriodType = '1st Cutoff (Next Month)';
+}
+
+// Pagination
+$payrollPage = isset($_GET['payroll_page']) ? max(1, (int) $_GET['payroll_page']) : 1;
+$payrollPerPage = 10;
+$payrollOffset = ($payrollPage - 1) * $payrollPerPage;
+
+// Filter parameters
+$payrollStatusFilter = isset($_GET['payroll_status']) ? $_GET['payroll_status'] : '';
+$payrollDepartmentFilter = isset($_GET['payroll_department']) ? $_GET['payroll_department'] : '';
+
+// Get statutory deductions (these are fixed per employee)
+try {
+    $payrollStatutoryDeductions = $db->query("
+        SELECT deduction_name, deduction_amount
+        FROM statutory_deductions
+        ORDER BY id
+    ")->find();
+
+    $payrollTotalStatutory = 0;
+    foreach ($payrollStatutoryDeductions as $deduction) {
+        $payrollTotalStatutory += $deduction['deduction_amount'];
+    }
+} catch (\Throwable $th) {
+    // Default values if table doesn't exist
+    $payrollStatutoryDeductions = [
+        ['deduction_name' => 'SSS', 'deduction_amount' => 450],
+        ['deduction_name' => 'PhilHealth', 'deduction_amount' => 250],
+        ['deduction_name' => 'PagIBIG', 'deduction_amount' => 100]
+    ];
+    $payrollTotalStatutory = 800;
+    error_log("Error fetching statutory deductions: " . $th->getMessage());
+}
+
+// Get distinct departments for filter
+try {
+    $payrollDepartments = $db->query("
+        SELECT DISTINCT department 
+        FROM employees 
+        WHERE department IS NOT NULL AND department != ''
+        ORDER BY department
+    ")->find();
+} catch (\Throwable $th) {
+    $payrollDepartments = [];
+    error_log("Error fetching departments: " . $th->getMessage());
+}
+
+// Build WHERE clause for filters
+$payrollWhereConditions = [];
+$payrollParams = [];
+
+if (!empty($payrollDepartmentFilter)) {
+    $payrollWhereConditions[] = "e.department = ?";
+    $payrollParams[] = $payrollDepartmentFilter;
+}
+
+$payrollWhereClause = !empty($payrollWhereConditions) ? "WHERE " . implode(" AND ", $payrollWhereConditions) : "";
+
+// ============================================
+// PAYROLL STATS
+// ============================================
+
+// Get all active employees for payroll
+$payrollBaseSql = "
+    SELECT 
+        e.id,
+        e.full_name,
+        e.position,
+        e.department,
+        e.hourly_rate,
+        COALESCE((
+            SELECT SUM(regular_hours) 
+            FROM attendance 
+            WHERE employee_id = e.id 
+            AND date BETWEEN ? AND ?
+            AND status = 'clocked_out'
+        ), 0) as total_regular_hours,
+        COALESCE((
+            SELECT SUM(overtime_hours) 
+            FROM attendance 
+            WHERE employee_id = e.id 
+            AND date BETWEEN ? AND ?
+            AND status = 'clocked_out'
+        ), 0) as total_overtime_hours
+    FROM employees e
+    WHERE e.status IN ('Active', 'Regular', 'Probationary')
+";
+
+if (!empty($payrollWhereClause)) {
+    $payrollBaseSql .= " AND " . substr($payrollWhereClause, 6); // Remove "WHERE " from the clause
+}
+
+$payrollBaseSql .= " ORDER BY e.full_name";
+
+try {
+    $payrollAllEmployees = $db->query(
+        $payrollBaseSql,
+        [$payrollPeriodStart, $payrollPeriodEnd, $payrollPeriodStart, $payrollPeriodEnd]
+    )->find();
+} catch (\Throwable $th) {
+    $payrollAllEmployees = [];
+    error_log("Error fetching employees for payroll: " . $th->getMessage());
+}
+
+// Calculate payroll totals
+$payrollTotalGross = 0;
+$payrollTotalStatutoryDeductions = 0;
+$payrollTotalNet = 0;
+$payrollProcessedCount = 0;
+$payrollPendingCount = 0;
+
+$payrollEmployees = [];
+foreach ($payrollAllEmployees as $emp) {
+    // Calculate gross pay (regular + overtime)
+    $regularPay = $emp['total_regular_hours'] * ($emp['hourly_rate'] ?: 0);
+    $overtimePay = $emp['total_overtime_hours'] * ($emp['hourly_rate'] ?: 0) * 1.25; // 25% overtime premium
+    $grossPay = $regularPay + $overtimePay;
+
+    // Statutory deductions are fixed per employee
+    $statutoryDeductions = $payrollTotalStatutory;
+
+    // Net pay is gross minus statutory deductions only (no benefit deductions or late penalties)
+    $netPay = max(0, $grossPay - $statutoryDeductions);
+
+    // Determine status (processed if has attendance)
+    $status = $emp['total_regular_hours'] > 0 ? 'Processed' : 'Pending';
+
+    if ($status == 'Processed') {
+        $payrollProcessedCount++;
+    } else {
+        $payrollPendingCount++;
+    }
+
+    $payrollTotalGross += $grossPay;
+    $payrollTotalStatutoryDeductions += $statutoryDeductions;
+    $payrollTotalNet += $netPay;
+
+    $emp['regular_pay'] = $regularPay;
+    $emp['overtime_pay'] = $overtimePay;
+    $emp['gross_pay'] = $grossPay;
+    $emp['statutory_deductions'] = $statutoryDeductions;
+    $emp['total_deductions'] = $statutoryDeductions; // Only statutory deductions
+    $emp['net_pay'] = $netPay;
+    $emp['status'] = $status;
+    $emp['initials'] = getInitials($emp['full_name']);
+
+    $payrollEmployees[] = $emp;
+}
+
+$payrollTotalEmployees = count($payrollEmployees);
+
+// Filter employees based on status if needed
+if (!empty($payrollStatusFilter)) {
+    $payrollFilteredEmployees = array_filter($payrollEmployees, function ($emp) use ($payrollStatusFilter) {
+        return $emp['status'] == $payrollStatusFilter;
+    });
+} else {
+    $payrollFilteredEmployees = $payrollEmployees;
+}
+
+// Apply department filter
+if (!empty($payrollDepartmentFilter)) {
+    $payrollFilteredEmployees = array_filter($payrollFilteredEmployees, function ($emp) use ($payrollDepartmentFilter) {
+        return $emp['department'] == $payrollDepartmentFilter;
+    });
+}
+
+// Re-index array
+$payrollFilteredEmployees = array_values($payrollFilteredEmployees);
+$payrollTotalFiltered = count($payrollFilteredEmployees);
+
+// Paginate
+$payrollPaginatedEmployees = array_slice($payrollFilteredEmployees, $payrollOffset, $payrollPerPage);
+$payrollTotalPages = ceil($payrollTotalFiltered / $payrollPerPage);
+
+// Calculate footer totals for displayed page
+$payrollPageRegularHours = 0;
+$payrollPageOvertimeHours = 0;
+$payrollPageAverageNet = 0;
+
+foreach ($payrollPaginatedEmployees as $emp) {
+    $payrollPageRegularHours += $emp['total_regular_hours'];
+    $payrollPageOvertimeHours += $emp['total_overtime_hours'];
+    $payrollPageAverageNet += $emp['net_pay'];
+}
+$payrollPageAverageNet = $payrollPageAverageNet > 0 ? round($payrollPageAverageNet / count($payrollPaginatedEmployees)) : 0;
+
+// Format currency function
+function formatPayrollCurrency($amount)
+{
+    return '₱' . number_format($amount, 2);
+}
 
 view_path('main', 'index', [
     // Job Postings
@@ -2304,5 +3686,92 @@ view_path('main', 'index', [
         'onboarded' => $totalOnboarded['count'] ?? 0,
         'inProgress' => $totalInProgress['count'] ?? 0,
         'pending' => $totalPending['count'] ?? 0,
-    ]
+    ],
+
+    'successionPage' => $successionPage,
+    'successionPerPage' => $successionPerPage,
+    'successionTotalPages' => $successionTotalPages,
+    'successionTotalCandidates' => $successionTotalCandidates,
+    'successionDepartmentFilter' => $successionDepartmentFilter,
+    'successionPositionFilter' => $successionPositionFilter,
+    'successionSortBy' => $successionSortBy,
+    'successionDepartments' => $successionDepartments,
+    'successionReadyCount' => $successionReadyCount,
+    'successionTotalTrainings' => $successionTotalTrainings,
+    'successionNoGapsCount' => $successionNoGapsCount,
+    'successionCandidates' => $successionCandidates,
+    'successionDeptSummary' => $successionDeptSummary,
+    'successionReadyNow' => $successionReadyNow,
+    'successionReadySoon' => $successionReadySoon,
+    'successionInProgress' => $successionInProgress,
+
+    //claims
+    'claimsPage' => $claimsPage,
+    'claimsPerPage' => $claimsPerPage,
+    'claimsTotalPages' => $claimsTotalPages,
+    'claimsTotal' => $claimsTotal,
+    'claimsStatusFilter' => $claimsStatusFilter,
+    'claimsDateFilter' => $claimsDateFilter,
+    'claimsActiveTab' => $claimsActiveTab,
+    'claimsList' => $claimsList,
+    'claimsPendingCount' => $claimsPendingCount,
+    'claimsPendingTotal' => $claimsPendingTotal,
+    'claimsApprovedCount' => $claimsApprovedCount,
+    'claimsApprovedTotal' => $claimsApprovedTotal,
+    'claimsProcessedCount' => $claimsProcessedCount,
+    'claimsProcessedTotal' => $claimsProcessedTotal,
+    'claimsTotalPendingAmount' => $claimsTotalPendingAmount,
+    'claimsTotalApprovedAmount' => $claimsTotalApprovedAmount,
+    'claimsAverageAmount' => $claimsAverageAmount,
+    'claimsProcessingTime' => $claimsProcessingTime,
+    'claimsMostCommonType' => $claimsMostCommonType,
+    'claimsMonthTotal' => $claimsMonthTotal,
+
+    // HMO & BENEFITS VARIABLES
+    'hmoPage' => $hmoPage,
+    'hmoPerPage' => $hmoPerPage,
+    'hmoTotalPages' => $hmoTotalPages,
+    'hmoTotalBenefits' => $hmoTotalBenefits,
+    'hmoProviderFilter' => $hmoProviderFilter,
+    'hmoStatusFilter' => $hmoStatusFilter,
+    'hmoProviders' => $hmoProviders,
+    'hmoTotalEmployees' => $hmoTotalEmployees,
+    'hmoEnrolledCount' => $hmoEnrolledCount,
+    'hmoCoverageRate' => $hmoCoverageRate,
+    'hmoPendingCount' => $hmoPendingCount,
+    'hmoClaimsCount' => $hmoClaimsCount,
+    'hmoClaimsTotal' => $hmoClaimsTotal,
+    'hmoPremiumDue' => $hmoPremiumDue,
+    'hmoCoveragePlans' => $hmoCoveragePlans,
+    'hmoTotalMonthlyPremium' => $hmoTotalMonthlyPremium,
+    'hmoCompanyShare' => $hmoCompanyShare,
+    'hmoEmployeeShare' => $hmoEmployeeShare,
+    'hmoExpiringSoon' => $hmoExpiringSoon,
+    'hmoRecentEnrollments' => $hmoRecentEnrollments,
+    'hmoBenefitsList' => $hmoBenefitsList,
+
+    // PAYROLL VARIABLES
+    'payrollPage' => $payrollPage,
+    'payrollPerPage' => $payrollPerPage,
+    'payrollTotalPages' => $payrollTotalPages,
+    'payrollTotalEmployees' => $payrollTotalEmployees,
+    'payrollTotalFiltered' => $payrollTotalFiltered,
+    'payrollStatusFilter' => $payrollStatusFilter,
+    'payrollDepartmentFilter' => $payrollDepartmentFilter,
+    'payrollDepartments' => $payrollDepartments,
+    'payrollPeriodStart' => $payrollPeriodStart,
+    'payrollPeriodEnd' => $payrollPeriodEnd,
+    'payrollPeriodLabel' => $payrollPeriodLabel,
+    'payrollPayDate' => $payrollPayDate,
+    'payrollPeriodType' => $payrollPeriodType,
+    'payrollTotalGross' => $payrollTotalGross,
+    'payrollTotalNet' => $payrollTotalNet,
+    'payrollProcessedCount' => $payrollProcessedCount,
+    'payrollPendingCount' => $payrollPendingCount,
+    'payrollStatutoryDeductions' => $payrollStatutoryDeductions,
+    'payrollTotalStatutory' => $payrollTotalStatutory,
+    'payrollEmployees' => $payrollPaginatedEmployees,
+    'payrollPageRegularHours' => $payrollPageRegularHours,
+    'payrollPageOvertimeHours' => $payrollPageOvertimeHours,
+    'payrollPageAverageNet' => $payrollPageAverageNet,
 ]);

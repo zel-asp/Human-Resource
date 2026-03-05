@@ -39,7 +39,7 @@
                 <!-- navigations -->
                 <div class="space-y-1" id="sideTabs">
                     <!-- RECRUITMENT & TALENT Section -->
-                    <div class="sidebar-category">RECRUITMENT & TALENT</div>
+                    <div class="sidebar-category">Human Resource 1</div>
                     <div class="side-tab active" data-tab="recruitment">
                         <i class="fas fa-bullhorn"></i>
                         Recruitment Management
@@ -52,13 +52,13 @@
                         <i class="fas fa-rocket"></i>
                         New Hire Onboarding
                     </div>
-
-                    <!-- PERFORMANCE & DEVELOPMENT Section -->
-                    <div class="sidebar-category">PERFORMANCE & DEVELOPMENT</div>
                     <div class="side-tab" data-tab="performance">
                         <i class="fas fa-chart-line"></i>
                         Performance Management
                     </div>
+
+                    <!-- PERFORMANCE & DEVELOPMENT Section -->
+                    <div class="sidebar-category">Human Resource 2</div>
                     <div class="side-tab" data-tab="competency">
                         <i class="fas fa-clipboard-check"></i>
                         Competency Management
@@ -77,18 +77,7 @@
                     </div>
 
                     <!-- EMPLOYEE SERVICES Section -->
-                    <div class="sidebar-category">EMPLOYEE SERVICES</div>
-                    <div class="side-tab" data-tab="hmo">
-                        <i class="fas fa-notes-medical"></i>
-                        HMO & Benefits Administration
-                    </div>
-                    <div class="side-tab" data-tab="claims">
-                        <i class="fas fa-file-invoice"></i>
-                        Claims and Reimbursement
-                    </div>
-
-                    <!-- TIME & ATTENDANCE Section -->
-                    <div class="sidebar-category">TIME & ATTENDANCE</div>
+                    <div class="sidebar-category">Human Resource 3</div>
                     <div class="side-tab" data-tab="time">
                         <i class="fas fa-clock"></i>
                         Time and Attendance System
@@ -105,9 +94,13 @@
                         <i class="fas fa-umbrella-beach"></i>
                         Leave Management
                     </div>
+                    <div class="side-tab" data-tab="claims">
+                        <i class="fas fa-file-invoice"></i>
+                        Claims and Reimbursement
+                    </div>
 
                     <!-- CORE HR Section -->
-                    <div class="sidebar-category">CORE HR</div>
+                    <div class="sidebar-category">Human Resource 4</div>
                     <div class="side-tab" data-tab="hcm">
                         <i class="fas fa-database"></i>
                         Core Human Capital Management
@@ -119,6 +112,10 @@
                     <div class="side-tab" data-tab="compensation">
                         <i class="fas fa-coins"></i>
                         Compensation Planning
+                    </div>
+                    <div class="side-tab" data-tab="hmo">
+                        <i class="fas fa-notes-medical"></i>
+                        HMO & Benefits Administration
                     </div>
                     <div class="side-tab" data-tab="analytics">
                         <i class="fas fa-chart-pie"></i>
@@ -227,9 +224,6 @@
 
         <!-- Create Schedule Modal -->
         <?php require base_path('view/main/modals/createSchedule.php'); ?>
-
-        <!-- New Claim Modal -->
-        <?php require base_path('view/main/modals/claim.php'); ?>
 
         <!-- Salary Review Modal -->
         <?php require base_path('view/main/modals/salaryReview.php'); ?>

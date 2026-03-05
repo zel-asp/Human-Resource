@@ -60,5 +60,6 @@ $router->post('/add-compensation', 'controller/main/post/addCompensation.php');
 //CORE
 $router->patch('/update-employee', 'controller/main/update/updateEmployeeInfo.php');
 
-
+//Claims
+$router->post('/submit-claims', 'controller/ess/post/submitClaims.php');
 
