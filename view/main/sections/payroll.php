@@ -5,17 +5,102 @@
             <h2 class="text-2xl font-semibold text-gray-800">Payroll Management</h2>
             <p class="text-gray-500 text-sm mt-1">Process payroll and manage compensation</p>
         </div>
-        <form action="/process-all-payroll" method="POST">
-            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-            <input type="hidden" name="process_all" value="1">
-            <button type="submit" class="btn-primary"
-                onclick="return confirm('Process payroll for all employees? This may take a moment.')">
-                <i class="fas fa-calculator"></i>
-                Process All Payroll
-            </button>
-        </form>
-    </div>
 
+        <div class="flex items-center gap-1">
+            <!-- Status Summary Badges -->
+            <div class="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                <span class="inline-flex items-center gap-1.5 text-xs">
+                    <span class="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+                    <span class="text-gray-700 font-medium">Approved:</span>
+                    <span class="text-gray-900 font-semibold">
+                        <?= $payrollApprovedCount ?? 0 ?>
+                    </span>
+                </span>
+                <span class="text-gray-300">|</span>
+                <span class="inline-flex items-center gap-1.5 text-xs">
+                    <span class="w-2.5 h-2.5 bg-yellow-500 rounded-full"></span>
+                    <span class="text-gray-700 font-medium">Pending:</span>
+                    <span class="text-gray-900 font-semibold">
+                        <?= $payrollPendingCount ?? 0 ?>
+                    </span>
+                </span>
+                <span class="text-gray-300">|</span>
+                <span class="inline-flex items-center gap-1.5 text-xs">
+                    <span class="w-2.5 h-2.5 bg-blue-500 rounded-full"></span>
+                    <span class="text-gray-700 font-medium">Total:</span>
+                    <span class="text-gray-900 font-semibold">
+                        <?= $payrollTotalEmployees ?? 0 ?>
+                    </span>
+                </span>
+            </div>
+
+            <!-- Process All Button with Status -->
+            <form action="/process-all-payroll" method="POST" class="relative group">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                <input type="hidden" name="process_all" value="1">
+                <input type="hidden" name="period_start" value="<?= $payrollPeriodStart ?>">
+                <input type="hidden" name="period_end" value="<?= $payrollPeriodEnd ?>">
+
+                <?php
+                // Calculate employees ready for processing (approved attendance AND not processed)
+                $payrollReadyForProcessing = 0;
+                $payrollTotalApproved = 0;
+
+                foreach ($payrollEmployees as $emp) {
+                    if ($emp['attendance_summary_status'] == 'approved') {
+                        $payrollTotalApproved++;
+                        if ($emp['status'] != 'Processed' && $emp['status'] != 'Processing') {
+                            $payrollReadyForProcessing++;
+                        }
+                    }
+                }
+
+                $hasReadyData = ($payrollReadyForProcessing > 0);
+                $buttonDisabled = !$hasReadyData;
+                $buttonTitle = $hasReadyData
+                    ? 'Process payroll for ' . $payrollReadyForProcessing . ' employees with approved data'
+                    : ($payrollTotalApproved > 0 ? 'All approved attendances have been processed' : 'No approved attendance to process');
+                ?>
+
+                <button type="submit" <?= $buttonDisabled ? 'disabled' : '' ?> class="
+        <?= $buttonDisabled ? 'bg-gray-300 cursor-not-allowed opacity-60' : 'btn-primary hover:bg-blue-700' ?> px-4
+        py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 shadow-sm whitespace-nowrap relative"
+                    <?= $buttonDisabled ? 'disabled' : '' ?>
+                    onclick="return <?= $hasReadyData ? 'confirm(\'Process payroll for ' . $payrollReadyForProcessing . ' employees with approved data? This may take a moment.\')' : 'false' ?>"
+                    title="<?= $buttonTitle ?>">
+
+                    <i class="fas fa-play-circle text-sm"></i>
+                    Process All
+
+                    <?php if ($payrollReadyForProcessing > 0): ?>
+                        <span class="ml-1 px-1.5 py-0.5 bg-white/20 rounded-full text-xs">
+                            <?= $payrollReadyForProcessing ?>
+                        </span>
+                    <?php endif; ?>
+                </button>
+
+                <!-- Tooltip on hover (only shows when button is disabled) -->
+                <?php if (!$hasReadyData): ?>
+                    <div
+                        class="absolute top-full mt-1 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                        <div class="bg-gray-800 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap shadow-lg">
+                            <div class="flex items-center gap-2">
+                                <?php if ($payrollTotalApproved > 0): ?>
+                                    <i class="fas fa-check-circle text-green-400 text-xs"></i>
+                                    <span>All approved (<?= $payrollTotalApproved ?>) already processed</span>
+                                <?php else: ?>
+                                    <i class="fas fa-info-circle text-blue-400 text-xs"></i>
+                                    <span>No approved attendance to process</span>
+                                <?php endif; ?>
+                            </div>
+                            <!-- Tooltip arrow -->
+                            <div class="absolute -top-1 right-4 w-2 h-2 bg-gray-800 transform rotate-45"></div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </form>
+        </div>
+    </div>
     <!-- Payroll Period Info -->
     <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -25,7 +110,8 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 uppercase tracking-wider">Current Payroll Period</p>
-                    <p class="text-lg font-semibold text-gray-800"><?= $payrollPeriodLabel ?></p>
+                    <p class="text-lg font-semibold text-gray-800"><?= $payrollPeriodLabel ?>
+                    </p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -43,8 +129,8 @@
         <div class="flex flex-wrap items-center gap-4">
             <div class="flex items-center gap-2">
                 <span class="text-sm text-gray-500">Filter by:</span>
-                <select name="payroll_status" onchange="applyPayrollFilter()"
-                    class="text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                <select name="payroll_status" onchange="applyPayrollFilter()" class=" text-sm bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none
+                focus:ring-2 focus:ring-gray-200">
                     <option value="">All Status</option>
                     <option value="Processed" <?= $payrollStatusFilter == 'Processed' ? 'selected' : '' ?>>Processed
                     </option>
@@ -75,20 +161,32 @@
         </div>
     </div>
     <!-- Payroll Summary Stats -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols- gap-4 mb-6">
-        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+    <div class="grid grid-cols-4 sm:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
             <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Gross Pay</p>
-            <p class="text-2xl font-bold text-gray-800"><?= formatPayrollCurrency($payrollTotalGross) ?></p>
-            <div class="flex items-center gap-2 mt-1">
-                <span class="text-xs text-gray-400">Before deductions</span>
-            </div>
+            <p class="text-xl font-bold text-gray-800"><?= formatPayrollCurrency($payrollTotalGross) ?></p>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Net Pay</p>
-            <p class="text-2xl font-bold text-gray-800"><?= formatPayrollCurrency($payrollTotalNet) ?></p>
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Net Pay</p>
+            <p class="text-xl font-bold text-gray-800"><?= formatPayrollCurrency($payrollTotalNet) ?></p>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Claims</p>
+            <p class="text-xl font-bold text-green-600"><?= formatPayrollCurrency($payrollTotalClaims) ?></p>
+        </div>
+
+        <div class=" bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Employees</p>
+            <p class="text-xl font-bold text-gray-800">
+                <?= $payrollTotalEmployees ?>
+            </p>
             <div class="flex items-center gap-2 mt-1">
-                <span class="text-xs text-gray-400">Take-home pay</span>
+                <span class="text-xs text-green-600"><?= $payrollProcessedCount ?> processed</span>
+                <span class=" text-xs text-yellow-600">
+                    <?= $payrollPendingCount ?> pending
+                </span>
             </div>
         </div>
     </div>
@@ -99,14 +197,20 @@
             class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <h3 class="text-lg font-semibold text-gray-800">Payroll Summary</h3>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-gray-500"><?= $payrollTotalEmployees ?> employees</span>
+                <span class="text-xs text-gray-500">
+                    <?= $payrollTotalEmployees ?> employees
+                </span>
                 <span class="inline-flex items-center gap-1 text-xs">
                     <span class="w-2 h-2 bg-green-400 rounded-full"></span>
-                    <span class="text-gray-500">Processed: <?= $payrollProcessedCount ?></span>
+                    <span class="text-gray-500">Processed:
+                        <?= $payrollProcessedCount ?>
+                    </span>
                 </span>
                 <span class="inline-flex items-center gap-1 text-xs">
                     <span class="w-2 h-2 bg-yellow-400 rounded-full"></span>
-                    <span class="text-gray-500">Pending: <?= $payrollPendingCount ?></span>
+                    <span class="text-gray-500">Pending:
+                        <?= $payrollPendingCount ?>
+                    </span>
                 </span>
             </div>
         </div>
@@ -174,16 +278,41 @@
                                             </div>
                                         </div>
                                     </td>
+
+                                    <!-- Regular Hours Column with Indicator -->
                                     <td class="py-3 px-6">
-                                        <span class="text-sm text-gray-600 font-medium whitespace-nowrap">
-                                            <?= round($emp['total_regular_hours']) ?> hrs
-                                        </span>
+                                        <div class="flex flex-col">
+                                            <span class="text-sm text-gray-600 font-medium whitespace-nowrap">
+                                                <?= round($emp['total_regular_hours']) ?> hrs
+                                            </span>
+                                            <?php if ($emp['total_regular_hours'] == 0 && $emp['attendance_summary_status'] == 'none'): ?>
+                                                <span class="text-xs text-gray-400 whitespace-nowrap">No attendance summary</span>
+                                            <?php elseif ($emp['attendance_summary_status'] == 'pending'): ?>
+                                                <span class="text-xs text-yellow-500 whitespace-nowrap">Pending approval</span>
+                                            <?php elseif ($emp['attendance_summary_status'] == 'rejected'): ?>
+                                                <span class="text-xs text-red-500 whitespace-nowrap">Rejected</span>
+                                            <?php elseif (
+                                                $emp['total_regular_hours'] == 0 && $emp['attendance_summary_status'] ==
+                                                'approved'
+                                            ): ?>
+                                                <span class="text-xs text-gray-400 whitespace-nowrap">0 hrs approved</span>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
+
+                                    <!-- Overtime Hours Column -->
                                     <td class="py-3 px-6">
-                                        <span class="text-sm text-gray-600 font-medium whitespace-nowrap">
-                                            <?= round($emp['total_overtime_hours']) ?> hrs
-                                        </span>
+                                        <div class="flex flex-col">
+                                            <span class="text-sm text-gray-600 font-medium whitespace-nowrap">
+                                                <?= round($emp['total_overtime_hours']) ?> hrs
+                                            </span>
+                                            <?php if ($emp['total_overtime_hours'] == 0 && $emp['attendance_summary_status'] == 'approved'): ?>
+                                                <span class="text-xs text-gray-400 whitespace-nowrap">No overtime</span>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
+
+                                    <!-- Claims Column -->
                                     <td class="py-3 px-6">
                                         <?php if ($emp['claims_count'] > 0): ?>
                                             <div class="flex flex-col min-w-25">
@@ -191,23 +320,38 @@
                                                     <?= formatPayrollCurrency($emp['claims_amount']) ?>
                                                 </span>
                                                 <span class="text-xs text-gray-400 whitespace-nowrap">
-                                                    <?= $emp['claims_count'] ?> claim<?= $emp['claims_count'] > 1 ? 's' : '' ?>
+                                                    <?= $emp['claims_count'] ?> claim
+                                                    <?= $emp['claims_count'] > 1 ? 's' : '' ?>
                                                 </span>
                                             </div>
                                         <?php else: ?>
-                                            <span class="text-sm text-gray-400">—</span>
+                                            <div class="flex flex-col">
+                                                <span class="text-sm text-gray-400">—</span>
+                                                <span class="text-xs text-gray-400 whitespace-nowrap">No claims</span>
+                                            </div>
                                         <?php endif; ?>
                                     </td>
+
+                                    <!-- Gross Pay Column -->
                                     <td class="py-3 px-6">
-                                        <span class="text-sm font-medium text-gray-800 whitespace-nowrap">
-                                            <?= formatPayrollCurrency($emp['gross_pay']) ?>
-                                        </span>
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-medium text-gray-800 whitespace-nowrap">
+                                                <?= formatPayrollCurrency($emp['gross_pay']) ?>
+                                            </span>
+                                            <?php if ($emp['gross_pay'] == 0): ?>
+                                                <span class="text-xs text-gray-400 whitespace-nowrap">No earnings</span>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
+
+                                    <!-- Deductions Column -->
                                     <td class="py-3 px-6">
                                         <span class="text-sm text-gray-600 whitespace-nowrap">
                                             <?= formatPayrollCurrency($emp['total_deductions']) ?>
                                         </span>
                                     </td>
+
+                                    <!-- Net Pay Column -->
                                     <td class="py-3 px-6">
                                         <div class="flex flex-col min-w-30">
                                             <span class="text-sm font-semibold text-gray-800 whitespace-nowrap">
@@ -217,9 +361,13 @@
                                                 <span class="text-xs text-green-600 whitespace-nowrap">
                                                     (inc. <?= formatPayrollCurrency($emp['claims_amount']) ?> claims)
                                                 </span>
+                                            <?php elseif ($emp['net_pay'] == 0): ?>
+                                                <span class="text-xs text-gray-400 whitespace-nowrap">No net pay</span>
                                             <?php endif; ?>
                                         </div>
                                     </td>
+
+                                    <!-- Status Column with Detailed Indicators -->
                                     <td class="py-3 px-6">
                                         <?php
                                         // Determine status badge color
@@ -240,24 +388,55 @@
                                             $statusIcon = 'fa-circle';
                                         }
                                         ?>
-                                        <div class="flex flex-col">
+                                        <div class="flex flex-col gap-1">
                                             <span
                                                 class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border whitespace-nowrap <?= $statusBadgeClass ?>">
                                                 <i class="fas <?= $statusIcon ?> mr-1.5"></i>
                                                 <?= $emp['status'] ?>
                                             </span>
+
+                                            <!-- Additional Status Indicators -->
+                                            <?php if ($emp['status'] == 'No Data'): ?>
+                                                <span class="text-xs text-gray-400 whitespace-nowrap">No attendance or claims</span>
+                                            <?php elseif ($emp['status'] == 'Pending'): ?>
+                                                <?php if ($emp['attendance_summary_status'] == 'pending'): ?>
+                                                    <span class="text-xs text-yellow-500 whitespace-nowrap">Awaiting attendance
+                                                        approval</span>
+                                                <?php elseif ($emp['attendance_summary_status'] == 'none' && $emp['claims_count'] > 0): ?>
+                                                    <span class="text-xs text-blue-500 whitespace-nowrap">Claims
+                                                        only (no
+                                                        attendance)</span>
+                                                <?php elseif ($emp['attendance_summary_status'] == 'approved'): ?>
+                                                    <span class="text-xs text-green-500 whitespace-nowrap">Attendance approved</span>
+                                                <?php endif; ?>
+                                            <?php elseif ($emp['status'] == 'Processed'): ?>
+                                                <span class="text-xs text-green-500 whitespace-nowrap">Payroll completed</span>
+                                            <?php elseif ($emp['status'] == 'Processing'): ?>
+                                                <span class="text-xs text-blue-500 whitespace-nowrap">Being processed</span>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
+
+                                    <!-- Actions Column -->
                                     <td class="py-3 pl-6 pr-4">
                                         <div class="flex items-center gap-2 min-w-[160px]">
+                                            <!-- Review Button - Always enabled to view details -->
                                             <button onclick="openModal('payrollReviewModal<?= $emp['id'] ?>')"
                                                 class="text-sm text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5 shadow-sm border border-gray-200 whitespace-nowrap">
                                                 <i class="fas fa-eye text-xs"></i>
                                                 <span>Review</span>
                                             </button>
 
-                                            <?php if ($emp['status'] == 'Processed' || $emp['status'] == 'Processing'): ?>
-                                                <!-- Update button for existing payroll -->
+                                            <?php
+                                            // Check if employee has any data to process
+                                            $hasAttendanceData = ($emp['total_regular_hours'] > 0 || $emp['total_overtime_hours'] > 0);
+                                            $hasClaims = ($emp['claims_amount'] > 0);
+                                            $hasAnyData = $hasAttendanceData || $hasClaims;
+                                            $hasAttendanceSummary = ($emp['attendance_summary_status'] != 'none');
+                                            ?>
+
+                                            <?php if ($emp['status'] == 'Processing'): ?>
+                                                <!-- Update button - Only show for Processing status -->
                                                 <form action="/payroll-summary" method="POST" class="inline-block">
                                                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                                                     <input type="hidden" name="employeeId" value="<?= $emp['id'] ?>">
@@ -269,13 +448,59 @@
                                                     <input type="hidden" name="grossPay" value="<?= $emp['gross_pay'] ?>">
                                                     <input type="hidden" name="deduction" value="<?= $emp['total_deductions'] ?>">
                                                     <input type="hidden" name="netPay" value="<?= $emp['net_pay'] ?>">
-                                                    <button type="submit"
-                                                        class="text-sm text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5 shadow-sm border border-blue-200 whitespace-nowrap">
-                                                        <i class="fas fa-sync-alt text-xs"></i>
-                                                        <span>Update</span>
-                                                    </button>
+
+                                                    <?php if (!$hasAttendanceSummary && !$hasClaims): ?>
+                                                        <!-- Completely disabled - No data at all -->
+                                                        <button type="button" disabled class="text-sm text-gray-300 bg-gray-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border
+            border-gray-200 cursor-not-allowed whitespace-nowrap"
+                                                            title="Cannot update: No attendance summary or claims data">
+                                                            <i class="fas fa-ban text-xs"></i>
+                                                            <span>No Data</span>
+                                                        </button>
+                                                    <?php elseif (!$hasAttendanceSummary && $hasClaims): ?>
+                                                        <!-- Claims only - Allow update -->
+                                                        <button type="submit"
+                                                            class="text-sm text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5 shadow-sm border border-blue-200 whitespace-nowrap"
+                                                            title="Update payroll (claims only, no attendance summary)">
+                                                            <i class="fas fa-sync-alt text-xs"></i>
+                                                            <span>Update</span>
+                                                        </button>
+                                                    <?php elseif ($emp['attendance_summary_status'] == 'pending'): ?>
+                                                        <!-- Disabled - Attendance not approved -->
+                                                        <button type="button" disabled
+                                                            class="text-sm text-yellow-500 bg-yellow-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-yellow-200 cursor-not-allowed whitespace-nowrap"
+                                                            title="Cannot process: Attendance still pending approval">
+                                                            <i class="fas fa-hourglass-half text-xs"></i>
+                                                            <span>Pending</span>
+                                                        </button>
+                                                    <?php elseif ($emp['attendance_summary_status'] == 'rejected'): ?>
+                                                        <!-- Disabled - Attendance rejected -->
+                                                        <button type="button" disabled class="text-sm text-red-500 bg-red-50 px-3 py-1.5 rounded-lg flex
+                items-center gap-1.5 border border-red-200 cursor-not-allowed whitespace-nowrap"
+                                                            title="Cannot process: Attendance was rejected">
+                                                            <i class="fas fa-times-circle text-xs"></i>
+                                                            <span>Rejected</span>
+                                                        </button>
+                                                    <?php elseif ($hasAttendanceData || $hasClaims): ?>
+                                                        <!-- Has data - Allow update -->
+                                                        <button type="submit" class="text-sm text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100
+                px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5 shadow-sm border
+                border-blue-200 whitespace-nowrap">
+                                                            <i class="fas fa-sync-alt text-xs"></i>
+                                                            <span>Update</span>
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <!-- No data to update -->
+                                                        <button type="button" disabled
+                                                            class="text-sm text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-gray-200 cursor-not-allowed whitespace-nowrap"
+                                                            title="No data to update">
+                                                            <i class="fas fa-ban text-xs"></i>
+                                                            <span>No Data</span>
+                                                        </button>
+                                                    <?php endif; ?>
                                                 </form>
-                                            <?php else: ?>
+
+                                            <?php elseif ($emp['status'] == 'Pending'): ?>
                                                 <!-- Process button for new payroll -->
                                                 <form action="/payroll-summary" method="POST" class="inline-block">
                                                     <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
@@ -288,12 +513,74 @@
                                                     <input type="hidden" name="grossPay" value="<?= $emp['gross_pay'] ?>">
                                                     <input type="hidden" name="deduction" value="<?= $emp['total_deductions'] ?>">
                                                     <input type="hidden" name="netPay" value="<?= $emp['net_pay'] ?>">
-                                                    <button type="submit"
-                                                        class="text-sm text-green-500 hover:text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5 shadow-sm border border-green-200 whitespace-nowrap">
-                                                        <i class="fas fa-check text-xs"></i>
-                                                        <span>Process</span>
-                                                    </button>
+
+                                                    <?php if (!$hasAttendanceSummary && !$hasClaims): ?>
+                                                        <!-- Completely disabled - No data at all -->
+                                                        <button type="button" disabled class="text-sm text-gray-300 bg-gray-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border
+            border-gray-200 cursor-not-allowed whitespace-nowrap"
+                                                            title="Cannot process: No attendance summary or claims data">
+                                                            <i class="fas fa-ban text-xs"></i>
+                                                            <span>No Data</span>
+                                                        </button>
+                                                    <?php elseif (!$hasAttendanceSummary && $hasClaims): ?>
+                                                        <!-- Claims only - Allow process -->
+                                                        <button type="submit"
+                                                            class="text-sm text-green-500 hover:text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5 shadow-sm border border-green-200 whitespace-nowrap"
+                                                            title="Process payroll (claims only, no attendance summary)">
+                                                            <i class="fas fa-check text-xs"></i>
+                                                            <span>Process</span>
+                                                        </button>
+                                                    <?php elseif ($emp['attendance_summary_status'] == 'pending'): ?>
+                                                        <!-- Disabled - Attendance not approved -->
+                                                        <button type="button" disabled
+                                                            class="text-sm text-yellow-500 bg-yellow-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-yellow-200 cursor-not-allowed whitespace-nowrap"
+                                                            title="Cannot process: Attendance still pending approval">
+                                                            <i class="fas fa-hourglass-half text-xs"></i>
+                                                            <span>Pending</span>
+                                                        </button>
+                                                    <?php elseif ($emp['attendance_summary_status'] == 'rejected'): ?>
+                                                        <!-- Disabled - Attendance rejected -->
+                                                        <button type="button" disabled
+                                                            class="text-sm text-red-500 bg-red-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-red-200 cursor-not-allowed whitespace-nowrap"
+                                                            title="Cannot process: Attendance was rejected">
+                                                            <i class="fas fa-times-circle text-xs"></i>
+                                                            <span>Rejected</span>
+                                                        </button>
+                                                    <?php elseif ($hasAttendanceData || $hasClaims): ?>
+                                                        <!-- Has data - Allow process -->
+                                                        <button type="submit"
+                                                            class="text-sm text-green-500 hover:text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors duration-200 flex items-center gap-1.5 shadow-sm border border-green-200 whitespace-nowrap">
+                                                            <i class="fas fa-check text-xs"></i>
+                                                            <span>Process</span>
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <!-- No data to process -->
+                                                        <button type="button" disabled
+                                                            class="text-sm text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-gray-200 cursor-not-allowed whitespace-nowrap"
+                                                            title="No data to process">
+                                                            <i class="fas fa-ban text-xs"></i>
+                                                            <span>No Data</span>
+                                                        </button>
+                                                    <?php endif; ?>
                                                 </form>
+
+                                            <?php elseif ($emp['status'] == 'Processed'): ?>
+                                                <!-- Show disabled button for Processed status -->
+                                                <button type="button" disabled
+                                                    class="text-sm text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-gray-200 cursor-not-allowed whitespace-nowrap"
+                                                    title="Payroll already processed - cannot be updated">
+                                                    <i class="fas fa-lock text-xs"></i>
+                                                    <span>Processed</span>
+                                                </button>
+
+                                            <?php else: ?>
+                                                <!-- Disabled button for No Data status -->
+                                                <button disabled
+                                                    class="text-sm text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-gray-200 cursor-not-allowed whitespace-nowrap"
+                                                    title="No attendance or claims data available">
+                                                    <i class="fas fa-ban text-xs"></i>
+                                                    <span>No Data</span>
+                                                </button>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -313,15 +600,18 @@
             </div>
 
             <!-- Payroll Summary Footer -->
-            <div class="mt-6 pt-4 border-t border-gray-100">
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div class="mt-6 pb-4 border-t border-gray-100">
+                <div class="grid grid-cols-4 sm:grid-cols-4 gap-4">
                     <div>
                         <p class="text-xs text-gray-500">Total Regular Hours</p>
-                        <p class="text-lg font-semibold text-gray-800"><?= round($payrollPageRegularHours) ?> hrs</p>
+                        <p class="text-lg font-semibold text-gray-800">
+                            <?= round($payrollPageRegularHours) ?> hrs
+                        </p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500">Total Overtime Hours</p>
-                        <p class="text-lg font-semibold text-gray-800"><?= round($payrollPageOvertimeHours) ?> hrs</p>
+                        <p class="text-lg font-semibold text-gray-800"><?= round($payrollPageOvertimeHours) ?> hrs
+                        </p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500">Total Claims</p>
@@ -343,8 +633,11 @@
                 <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p class="text-sm text-gray-500">
                         Showing <span
-                            class="font-medium"><?= min(1 + ($payrollPage - 1) * $payrollPerPage, $payrollTotalFiltered) ?>-<?= min($payrollPage * $payrollPerPage, $payrollTotalFiltered) ?></span>
-                        of <span class="font-medium"><?= $payrollTotalFiltered ?></span> employees
+                            class="font-medium"><?= min(1 + ($payrollPage - 1) * $payrollPerPage, $payrollTotalFiltered) ?>-
+                            <?= min($payrollPage * $payrollPerPage, $payrollTotalFiltered) ?>
+                        </span>
+                        of <span class="font-medium">
+                            <?= $payrollTotalFiltered ?></span> employees
                     </p>
                     <div class="flex items-center gap-2">
                         <?php if ($payrollPage > 1): ?>
@@ -353,33 +646,141 @@
                                 <i class="fas fa-chevron-left text-xs"></i>
                             </a>
                         <?php else: ?>
-                            <button
-                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
-                                disabled>
+                            <button class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-400
+        cursor-not-allowed" disabled>
                                 <i class="fas fa-chevron-left text-xs"></i>
                             </button>
                         <?php endif; ?>
 
                         <?php for ($i = 1; $i <= min(5, $payrollTotalPages); $i++): ?>
-                            <a href="?tab=payroll&payroll_page=<?= $i ?>&payroll_status=<?= urlencode($payrollStatusFilter) ?>&payroll_department=<?= urlencode($payrollDepartmentFilter) ?>"
-                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg <?= $i == $payrollPage ? 'bg-gray-800 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?> transition-colors duration-200">
+                            <a href=" ?tab=payroll&payroll_page=<?= $i ?>&payroll_status=
+            <?= urlencode($payrollStatusFilter) ?>&payroll_department=
+            <?= urlencode($payrollDepartmentFilter) ?>" class="w-8 h-8 flex items-center justify-center text-sm rounded-lg
+            <?= $i == $payrollPage ? 'bg-gray-800 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' ?>
+            transition-colors duration-200">
                                 <?= $i ?>
                             </a>
                         <?php endfor; ?>
 
                         <?php if ($payrollPage < $payrollTotalPages): ?>
                             <a href="?tab=payroll&payroll_page=<?= $payrollPage + 1 ?>&payroll_status=<?= urlencode($payrollStatusFilter) ?>&payroll_department=<?= urlencode($payrollDepartmentFilter) ?>"
-                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors duration-200">
+                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200
+                text-gray-600 hover:bg-gray-50 transition-colors duration-200">
                                 <i class="fas fa-chevron-right text-xs"></i>
                             </a>
                         <?php else: ?>
-                            <button
-                                class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200 text-gray-400 cursor-not-allowed"
-                                disabled>
+                            <button class="w-8 h-8 flex items-center justify-center text-sm rounded-lg bg-white border border-gray-200
+                text-gray-400 cursor-not-allowed" disabled>
                                 <i class="fas fa-chevron-right text-xs"></i>
                             </button>
                         <?php endif; ?>
                     </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Payroll History Section -->
+    <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mt-6">
+        <div
+            class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class=" w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-history text-blue-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800">Payroll History</h3>
+            </div>
+            <button onclick="exportCurrentPage()"
+                class="text-sm text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 border border-green-200">
+                <i class="fas fa-file-excel"></i>
+                Export Current Period
+            </button>
+        </div>
+
+        <div class=" p-6">
+            <?php if (!empty($payrollHistory)): ?>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <?php foreach ($payrollHistory as $history):
+                        $periodLabel = date('M j', strtotime($history['period_start'])) . ' - ' . date('M j, Y', strtotime($history['period_end']));
+                        $isCurrentPeriod = ($history['period_start'] == $payrollPeriodStart && $history['period_end'] == $payrollPeriodEnd);
+                        $statusColor = 'gray';
+                        $statusIcon = 'fa-circle';
+
+                        if (strpos($history['statuses'], 'Processed') !== false) {
+                            $statusColor = 'green';
+                            $statusIcon = 'fa-check-circle';
+                        } elseif (strpos($history['statuses'], 'Processing') !== false) {
+                            $statusColor = 'blue';
+                            $statusIcon = 'fa-clock';
+                        }
+                        ?>
+                        <div
+                            class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200 <?= $isCurrentPeriod ? 'bg-blue-50/30 border-blue-200' : '' ?>">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800">
+                                        <?= $periodLabel ?>
+                                    </p>
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        <i class="far fa-calendar-alt mr-1"></i>
+                                        <?= date('M j, Y', strtotime($history['last_generated'])) ?>
+                                    </p>
+                                </div>
+                                <span
+                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-<?= $statusColor ?>-100 text-<?= $statusColor ?>-700">
+                                    <i class="fas <?= $statusIcon ?> mr-1"></i>
+
+                                    <?= $history['employee_count'] ?> employees
+                                </span>
+                            </div>
+
+                            <div class="flex items-center justify-around p-3">
+                                <div>
+
+                                    <p class="text-xs text-gray-400">Gross Pay</p>
+                                    <p class="text-sm font-semibold text-gray-800">
+                                        <?= formatPayrollCurrency($history['total_gross']) ?>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-gray-400">Net Pay</p>
+                                    <p class="text-sm font-semibold text-green-600">
+                                        <?= formatPayrollCurrency($history['total_net']) ?>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-around pt-2 border-t border-gray-200">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-file-invoice-dollar text-xs text-gray-300"></i>
+                                    <span class="text-xs text-gray-400">Claims:
+                                        <?= formatPayrollCurrency($history['total_claims']) ?>
+                                    </span>
+                                </div>
+                                <button
+                                    onclick="exportPayrollPeriod('<?= $history['period_start'] ?>', '<?= $history['period_end'] ?>')"
+                                    class="text-xs text-white flex items-center gap-1 bg-primary py-2 px-4 rounded-sm">
+                                    <i class="fas fa-download"></i>
+                                    Export
+                                </button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <!-- View All History Link -->
+                <div class="mt-4 text-center">
+                    <a href="#" onclick="alert('View full history coming soon!')"
+                        class="text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1">
+                        View All History
+                        <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="text-center py-8 text-gray-400">
+                    <i class="fas fa-history text-3xl mb-2"></i>
+                    <p class="text-sm">No payroll history yet</p>
+                    <p class="text-xs mt-1">Process payroll to see history here</p>
                 </div>
             <?php endif; ?>
         </div>
@@ -430,7 +831,7 @@
 
                     <!-- Payroll Summary Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div class="bg-blue-50 rounded-lg p-4 text-center">
+                        <div class=" bg-blue-50 rounded-lg p-4 text-center">
                             <p class="text-xs text-gray-500 uppercase mb-1">Regular Hours</p>
                             <p class="text-2xl font-bold text-blue-700">
                                 <?= round($emp['total_regular_hours']) ?>
@@ -485,7 +886,9 @@
                                     </tr>
                                 </tbody>
                             </table>
+
                         </div>
+
                     </div>
 
                     <!-- Deductions Breakdown -->
@@ -538,6 +941,15 @@
 <script>
     function printPayslip(employeeId) {
         window.print();
+    }
+    function exportPayrollPeriod(periodStart, periodEnd) {
+        window.location.href = '?tab=payroll&export_payroll=1&period_start=' + periodStart + '&period_end=' + periodEnd;
+    }
+
+    function exportCurrentPage() {
+        const periodStart = '<?= $payrollPeriodStart ?>';
+        const periodEnd = '<?= $payrollPeriodEnd ?>';
+        exportPayrollPeriod(periodStart, periodEnd);
     }
     function applyPayrollFilter() {
         const url = new URL(window.location.href);

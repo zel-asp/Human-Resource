@@ -48,11 +48,20 @@
                             <span><?= htmlspecialchars($job['location']) ?></span>
                         </div>
 
+                        <?php
+                        $shiftMap = [
+                            1 => 'Morning',
+                            2 => 'Evening',
+                            3 => 'Graveyard'
+                        ];
+                        $shiftText = $shiftMap[$job['shift']] ?? 'Unknown';
+                        ?>
+
                         <div class="flex items-center text-sm text-gray-600">
                             <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mr-3">
                                 <i class="fas fa-clock text-gray-600 text-sm"></i>
                             </div>
-                            <span><?= htmlspecialchars($job['shift']) ?></span>
+                            <span><?= htmlspecialchars($shiftText) ?></span>
                         </div>
 
                         <div class="flex items-center text-sm text-gray-600">
@@ -118,7 +127,7 @@
                 <?php foreach ($recentApplicants as $applicant): ?>
                     <!-- Applicant preview -->
                     <div
-                        class="group flex items-center justify-between p-3 bg-white border border-gray-100 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all duration-200">
+                        class="group flex items-center justify-around p-3 bg-white border border-gray-100 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all duration-200">
                         <div class="flex items-center gap-3 min-w-0 flex-1">
                             <div
                                 class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-sm font-medium shrink-0">

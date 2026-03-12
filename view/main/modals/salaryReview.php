@@ -11,7 +11,8 @@
         <div class="p-6">
             <form action="/add-compensation" method="POST" class="space-y-4">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                <input type="hidden" name="ratePerHour" value="" id="ratePerHour">
+                <!-- Keep only ONE hidden field for the raw hourly rate value -->
+                <input type="hidden" name="proposed_hourly_rate" value="" id="proposed_hourly_rate">
 
                 <div>
                     <label class="block text-sm font-medium mb-1">Employee</label>
@@ -23,8 +24,7 @@
                             <option value="<?= $emp['id'] ?>" data-hourly="<?= $emp['hourly_rate'] ?>">
                                 <?= htmlspecialchars($emp['full_name']) ?> -
                                 <?= htmlspecialchars($emp['position']) ?>
-                                (
-                                <?= formatMonthly($emp['hourly_rate']) ?>/mo)
+                                (<?= formatMonthly($emp['hourly_rate']) ?>/mo)
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -49,6 +49,24 @@
                             class="w-full p-2 border border-gray-300 rounded-lg text-sm" step="0.01" min="0" required
                             oninput="calculateIncrease()">
                     </div>
+                </div>
+
+                <!-- New Hourly Rate Field - NO name attribute on display field -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Proposed Hourly Rate</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="hourly_rate_display"
+                            class="flex-1 p-2 border border-gray-300 rounded-lg text-sm bg-gray-100" readonly
+                            placeholder="Hourly rate will be calculated">
+                        <!-- Optional: Keep the edit button if you want manual editing -->
+                        <button type="button" onclick="toggleHourlyEdit()"
+                            class="px-3 py-2 bg-gray-200 rounded-lg text-sm hover:bg-gray-300"
+                            title="Toggle manual edit">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Calculated based on proposed salary (8 hours/day, 22
+                        days/month)</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -91,10 +109,10 @@
                 <div class="flex justify-end gap-2 pt-4">
                     <button type="button" class="px-4 py-2 bg-gray-200 rounded-lg text-sm"
                         onclick="closeModal('salaryReviewModal')">Cancel</button>
-                    <button type="submit" class="btn-primary">Submit
-                        Review</button>
+                    <button type="submit" class="btn-primary" name="submitReview">Submit Review</button>
                 </div>
             </form>
+
         </div>
     </div>
 </div>

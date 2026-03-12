@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3307
--- Generation Time: Mar 07, 2026 at 07:20 AM
+-- Generation Time: Mar 10, 2026 at 03:29 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -39,13 +39,6 @@ CREATE TABLE `admin_notes` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `admin_notes`
---
-
-INSERT INTO `admin_notes` (`id`, `employee_id`, `note_title`, `note_content`, `note_type`, `status`, `created_by`, `created_at`, `updated_at`) VALUES
-(6, 62, 'Missing Requirements - 2026-03-07', 'Employee: Sasuke (EMP-056)\nMissing Requirements: 1\n\nMissing Items:\n1. Resume\n\nNotification sent on: 2026-03-07 07:19:59', 'confidential', 'active', NULL, '2026-03-07 06:19:59', '2026-03-07 06:19:59');
-
 -- --------------------------------------------------------
 
 --
@@ -59,28 +52,33 @@ CREATE TABLE `applicants` (
   `email` varchar(100) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `position` varchar(50) NOT NULL,
+  `rate_per_hour` decimal(10,2) DEFAULT NULL,
   `experience` varchar(255) DEFAULT NULL,
   `education` varchar(255) DEFAULT NULL,
   `skills` text DEFAULT NULL,
-  `status` enum('New','Review','Interview','Offer','Rejected','Hired') NOT NULL DEFAULT 'New',
+  `status` enum('New','Review','Interview','Offer','Rejected','Hired','Contract') NOT NULL DEFAULT 'New',
   `hired_date` date DEFAULT NULL,
   `start_date` date DEFAULT NULL,
+  `interview_date` date DEFAULT NULL,
+  `contract_signing_date` date DEFAULT NULL,
   `resume_path` varchar(255) DEFAULT NULL,
   `cover_note` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `age` tinyint(3) UNSIGNED DEFAULT NULL,
-  `gender` enum('male','female','other') DEFAULT NULL
+  `gender` enum('male','female','other') DEFAULT NULL,
+  `shift` tinyint(4) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `applicants`
 --
 
-INSERT INTO `applicants` (`id`, `full_name`, `department`, `email`, `phone`, `position`, `experience`, `education`, `skills`, `status`, `hired_date`, `start_date`, `resume_path`, `cover_note`, `created_at`, `age`, `gender`) VALUES
-(56, 'Uzumaki Dela CRUZ', 'Finance', 'B0s5ls.Do1s@gmail.com', '09123456789', 'Restaurant Server', 's', 'xcv', 'd', 'Hired', '2026-03-05', '2026-03-15', '', '', '2026-03-04 07:37:29', 34, 'male'),
-(57, 'Uzumaki Dela CRUZ', 'Finance', 'B0s5ls.sDo1s@gmail.com', '09123456789', 'Restaurant Serversf', 's', 'xcv', 'a', 'Hired', '2026-03-06', '2026-03-07', '', '', '2026-03-04 07:37:41', 34, 'female'),
-(58, 'Uzumaki Dela CRUZ', 'Finance', 'B0s5ls.Dl1s@gmail.com', '09565819961', 'Restaurant Serversf', 'sdsd', 'e2432', '3423', 'Hired', '2026-03-07', '2026-03-08', '', 'd', '2026-03-06 03:00:13', 18, 'male'),
-(59, 'hello admin', 'Management', 'janzeldols@gmail.com', '09123456789', 'Restaurant Serversfafasfasf', 'fsd', 'asa', 'asa', 'Hired', '2026-03-07', '2026-03-08', 'https://plxoonwsguadkqisevxh.supabase.co/storage/v1/object/public/resumes/1772823342366-s2wcd5yx0z.jpg', 'asa', '2026-03-06 18:55:43', 19, 'female');
+INSERT INTO `applicants` (`id`, `full_name`, `department`, `email`, `phone`, `position`, `rate_per_hour`, `experience`, `education`, `skills`, `status`, `hired_date`, `start_date`, `interview_date`, `contract_signing_date`, `resume_path`, `cover_note`, `created_at`, `age`, `gender`, `shift`) VALUES
+(60, 'Janzel Dolo', 'Finance', 'janzeldols@gmail.com', '09565819961', 'Restaurant Serversf', NULL, '1 yr service crew', 'college undergraduate', 'Teamwork, fast learner', 'Hired', '2026-03-07', '2026-03-09', NULL, '2026-03-10', 'https://plxoonwsguadkqisevxh.supabase.co/storage/v1/object/public/resumes/1772885794998-q8o2eatgl2.png', 'try me', '2026-03-07 12:16:38', 21, 'male', 1),
+(66, 'sakura', 'Finance', 'ad1@gmail.com', '09123456789', 'Restaurant Server', 600.00, 'fsd', 'dsfs', 'k', 'Hired', '2026-03-10', '2026-03-11', NULL, '2026-03-10', '', '', '2026-03-10 18:08:29', 34, 'female', 1),
+(67, 'Sakuke', 'Hotel', 'Bossing.Do1s@gmail.com', '09565819961', 'frontdesk', 400.00, 'xcv', 'd', 'd', 'Hired', '2026-03-10', '2026-03-11', NULL, NULL, '', '', '2026-03-09 16:25:58', 23, 'male', 2),
+(68, 'Uzumaki', 'Hotel', 'uzumakiss.Do1s@gmail.com', '09565819961', 'frontdesk', 400.00, 'xcv', 'xcv', 'd', 'Hired', '2026-03-10', '2026-03-11', NULL, NULL, '', '', '2026-03-10 11:43:47', 23, 'female', 1),
+(69, 'Sai', 'Hotel', 'Sai@gmail.com', '09565819961', 'frontdesk', 400.00, 'xcv', 'xcv', 'w', 'Hired', '2026-03-10', '2026-03-11', NULL, NULL, '', '', '2026-03-10 12:07:09', 23, 'female', 1);
 
 -- --------------------------------------------------------
 
@@ -112,8 +110,10 @@ CREATE TABLE `attendance` (
 --
 
 INSERT INTO `attendance` (`id`, `employee_id`, `shift_id`, `clock_in`, `clock_out`, `pause_start`, `pause_total`, `late_minutes`, `late_status`, `regular_hours`, `overtime_hours`, `early_departure_minutes`, `status`, `date`, `created_at`, `updated_at`) VALUES
-(132, 62, 1, '2026-03-09 22:06:15', '2026-03-09 22:06:20', NULL, 0, 966, 'late', 0.00, 0.00, 0, 'clocked_out', '2026-03-09', '2026-03-09 14:06:15', '2026-03-09 14:06:20'),
-(133, 62, 1, '2026-03-10 00:15:52', NULL, NULL, 0, 0, 'on_time', 0.00, 0.00, 0, 'clocked_in', '2026-03-10', '2026-03-09 16:15:52', '2026-03-09 16:15:52');
+(205, 82, 1, '2026-03-10 18:20:11', '2026-03-10 18:20:24', NULL, 0, 740, 'late', 8.00, 0.00, 0, 'clocked_out', '2026-03-10', '2026-03-10 10:20:11', '2026-03-10 10:20:34'),
+(206, 82, 1, '2026-03-10 18:20:43', '2026-03-10 18:21:24', NULL, 0, 740, 'late', 0.01, 0.00, 0, 'clocked_out', '2026-03-10', '2026-03-10 10:20:43', '2026-03-10 10:21:24'),
+(207, 82, 1, '2026-03-10 18:21:38', '2026-03-10 18:22:28', NULL, 0, 741, 'late', 0.01, 0.00, 0, 'clocked_out', '2026-03-10', '2026-03-10 10:21:38', '2026-03-10 10:22:28'),
+(208, 82, 1, '2026-03-10 18:22:39', NULL, NULL, 0, 742, 'late', 0.00, 0.00, 0, 'clocked_in', '2026-03-10', '2026-03-10 10:22:39', '2026-03-10 13:09:18');
 
 -- --------------------------------------------------------
 
@@ -129,6 +129,7 @@ CREATE TABLE `attendance_summary` (
   `total_regular_hours` decimal(7,2) DEFAULT 0.00,
   `total_overtime_hours` decimal(7,2) DEFAULT 0.00,
   `total_late_minutes` int(11) DEFAULT 0,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -137,8 +138,26 @@ CREATE TABLE `attendance_summary` (
 -- Dumping data for table `attendance_summary`
 --
 
-INSERT INTO `attendance_summary` (`id`, `employee_id`, `period_start`, `period_end`, `total_regular_hours`, `total_overtime_hours`, `total_late_minutes`, `created_at`, `updated_at`) VALUES
-(38, 62, '2026-03-06', '2026-03-20', 0.00, 0.00, 966, '2026-03-09 14:06:20', '2026-03-09 14:06:20');
+INSERT INTO `attendance_summary` (`id`, `employee_id`, `period_start`, `period_end`, `total_regular_hours`, `total_overtime_hours`, `total_late_minutes`, `status`, `created_at`, `updated_at`) VALUES
+(54, 82, '2026-03-06', '2026-03-20', 64.00, 0.00, 2221, 'approved', '2026-03-10 10:20:24', '2026-03-10 10:27:55');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `attendance_uploads`
+--
+
+CREATE TABLE `attendance_uploads` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `filename` varchar(255) NOT NULL,
+  `file_size` int(11) DEFAULT NULL,
+  `records_processed` int(11) DEFAULT 0,
+  `shift_updates` int(11) DEFAULT 0,
+  `errors` text DEFAULT NULL,
+  `uploaded_by` int(11) DEFAULT NULL,
+  `department` varchar(100) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -189,15 +208,16 @@ CREATE TABLE `compensation_reviews` (
   `annual_impact` decimal(10,2) GENERATED ALWAYS AS ((`proposed_salary` - `current_salary`) * 12) STORED,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `created_by` int(11) DEFAULT NULL
+  `created_by` int(11) DEFAULT NULL,
+  `proposed_hourly_rate` decimal(10,2) DEFAULT NULL COMMENT 'Proposed hourly rate for compensation review'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `compensation_reviews`
 --
 
-INSERT INTO `compensation_reviews` (`id`, `employee_id`, `current_salary`, `review_type`, `review_date`, `effective_date`, `proposed_salary`, `status`, `finance_approved_at`, `finance_approved_by`, `finance_notes`, `budget_code`, `created_at`, `updated_at`, `created_by`) VALUES
-(5, 69, 42240.00, 'promotion', '2026-03-07', '2026-03-08', 1213232.00, 'draft', NULL, NULL, '', NULL, '2026-03-07 02:06:03', '2026-03-07 02:06:03', NULL);
+INSERT INTO `compensation_reviews` (`id`, `employee_id`, `current_salary`, `review_type`, `review_date`, `effective_date`, `proposed_salary`, `status`, `finance_approved_at`, `finance_approved_by`, `finance_notes`, `budget_code`, `created_at`, `updated_at`, `created_by`, `proposed_hourly_rate`) VALUES
+(16, 82, 23584.00, 'annual', '2026-03-09', '2026-03-10', 28999.52, 'pending_finance', NULL, NULL, '', '', '2026-03-09 12:26:48', '2026-03-09 12:27:20', NULL, 164.77);
 
 -- --------------------------------------------------------
 
@@ -219,8 +239,8 @@ CREATE TABLE `competencies` (
 
 INSERT INTO `competencies` (`id`, `name`, `description`, `created_at`, `required_level`) VALUES
 (1, 'Customer Service', NULL, '2026-03-02 06:32:29', 3),
-(2, 'Food Safety', NULL, '2026-03-02 06:32:29', 4),
-(3, 'POS Systems', NULL, '2026-03-02 06:32:29', 2),
+(2, 'Food Safety', NULL, '2026-03-02 06:32:29', 3),
+(3, 'POS Systems', NULL, '2026-03-02 06:32:29', 3),
 (4, 'Team Leadership', NULL, '2026-03-02 06:32:29', 3);
 
 -- --------------------------------------------------------
@@ -238,8 +258,16 @@ CREATE TABLE `competency_assessments` (
   `assessment_notes` text DEFAULT NULL,
   `assessment_date` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `status` enum('Passed','Needs Improvement') NOT NULL
+  `status` enum('Passed','Needs Improvement') NOT NULL,
+  `notified` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `competency_assessments`
+--
+
+INSERT INTO `competency_assessments` (`id`, `employee_id`, `competency_id`, `assessor_id`, `proficiency_level`, `assessment_notes`, `assessment_date`, `created_at`, `status`, `notified`) VALUES
+(20, 98, 2, 101, 2, 'n', '2026-03-10', '2026-03-10 13:13:06', 'Needs Improvement', 1);
 
 -- --------------------------------------------------------
 
@@ -272,23 +300,20 @@ CREATE TABLE `employees` (
   `resume` varchar(255) DEFAULT NULL,
   `birth_certificate` varchar(255) DEFAULT NULL,
   `nbi_clearance` varchar(255) DEFAULT NULL,
-  `medical_result` varchar(255) DEFAULT NULL
+  `medical_result` varchar(255) DEFAULT NULL,
+  `interview_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `employees`
 --
 
-INSERT INTO `employees` (`id`, `applicant_id`, `employee_number`, `full_name`, `email`, `phone`, `position`, `hourly_rate`, `department`, `start_date`, `hired_date`, `onboarding_status`, `status`, `shift_id`, `created_at`, `updated_at`, `evaluation_status`, `role`, `age`, `gender`, `benefit_status`, `resume`, `birth_certificate`, `nbi_clearance`, `medical_result`) VALUES
-(62, 56, 'EMP-056', 'Sasuke', 'B0s5ls.Do1s@gmail.com', '09123456789', 'Restaurant Server', 250.00, 'Logistic', '2026-03-15', '2026-03-05', 'In Progress', 'Probationary', 1, '2026-03-05 20:15:52', '2026-03-07 14:19:52', 'Pending', 'employee', 34, 'male', 'enrolled', '', 'https://plxoonwsguadkqisevxh.supabase.co/storage/v1/object/public/birth-certificate/birth_certificate_1772850516408.png', 'https://plxoonwsguadkqisevxh.supabase.co/storage/v1/object/public/nbi-clearance/nbi_clearance_1772850555521.png', 'https://plxoonwsguadkqisevxh.supabase.co/storage/v1/object/public/medical/medical_result_1772850506178.png'),
-(63, 57, 'EMP-057', 'Sakura', 'B0s5ls.sDo1s@gmail.com', '09123456789', 'Senior one', 400.00, 'Logistic', '2026-03-07', '2026-03-06', 'In Progress', 'Probationary', 1, '2026-03-06 09:24:58', '2026-03-07 12:00:29', 'Evaluated', 'mentor', 34, 'female', 'Not Enrolled', NULL, NULL, NULL, NULL),
-(65, NULL, 'EMP-67', 'Michael Reyes', 'michael.reyes@company.com', '09171234567', 'Restaurant Manager', 350.00, 'Management', '2025-01-15', '2025-01-15', 'Onboarded', 'Regular', 1, '2026-03-09 23:01:45', '2026-03-07 02:56:21', 'Evaluated', 'admin', 42, 'male', 'enrolled', NULL, NULL, NULL, NULL),
-(66, NULL, 'EMP-060', 'Jennifer Santos', 'jennifer.santos@company.com', '09181234568', 'Senior Server', 250.00, 'F&B Service', '2025-02-01', '2025-02-01', 'Onboarded', 'Regular', 2, '2026-03-09 23:01:45', '2026-03-09 23:04:29', 'Evaluated', 'mentor', 35, 'female', 'enrolled', NULL, NULL, NULL, NULL),
-(67, NULL, 'EMP-061', 'Robert Gomez', 'robert.gomez@company.com', '09191234569', 'Shift Manager', 300.00, 'Operations', '2025-01-20', '2025-01-20', 'Onboarded', 'Regular', 3, '2026-03-09 23:01:45', '2026-03-09 23:01:45', 'Evaluated', 'mentor', 38, 'male', 'enrolled', NULL, NULL, NULL, NULL),
-(68, NULL, 'EMP-062', 'Maria Lopez', 'maria.lopez@company.com', '09201234570', 'Head Server', 220.00, 'F&B Service', '2025-02-15', '2025-02-15', 'Onboarded', 'Regular', 1, '2026-03-09 23:01:45', '2026-03-09 23:04:12', 'Evaluated', 'evaluator', 29, 'female', 'enrolled', NULL, NULL, NULL, NULL),
-(69, NULL, 'EMP-063', 'Antonio Villanueva', 'antonio.v@company.com', '09211234571', 'Senior Server', 240.00, 'F&B Service', '2025-03-01', '2025-03-01', 'Onboarded', 'Regular', 2, '2026-03-09 23:01:45', '2026-03-09 23:04:33', 'Evaluated', 'evaluator', 31, 'male', 'enrolled', NULL, NULL, NULL, NULL),
-(70, 58, 'EMP-058', 'Uzumaki Dela CRUZ', 'B0s5ls.Dl1s@gmail.com', '09565819961', 'Restaurant Serversf', 0.00, 'Finance', '2026-03-08', '2026-03-06', 'Onboarding', 'Probationary', NULL, '2026-03-07 02:09:21', '2026-03-07 02:09:21', 'Pending', 'employee', 18, 'male', 'Not Enrolled', NULL, NULL, NULL, NULL),
-(73, 59, 'EMP-059', 'hello admin', 'janzeldols@gmail.com', '09123456789', 'Restaurant Serversfafasfasf', 0.00, 'Management', '2026-03-08', '2026-03-06', 'Onboarding', 'Probationary', NULL, '2026-03-07 03:31:25', '2026-03-07 03:31:25', 'Pending', 'employee', 19, 'female', 'Not Enrolled', 'https://plxoonwsguadkqisevxh.supabase.co/storage/v1/object/public/resumes/1772823342366-s2wcd5yx0z.jpg', NULL, NULL, NULL);
+INSERT INTO `employees` (`id`, `applicant_id`, `employee_number`, `full_name`, `email`, `phone`, `position`, `hourly_rate`, `department`, `start_date`, `hired_date`, `onboarding_status`, `status`, `shift_id`, `created_at`, `updated_at`, `evaluation_status`, `role`, `age`, `gender`, `benefit_status`, `resume`, `birth_certificate`, `nbi_clearance`, `medical_result`, `interview_date`) VALUES
+(82, 60, 'EMP-060', 'Janzel Dolo', 'janzeldols@gmail.com', '09565819961', 'Restaurant Serversf', 134.00, 'Finance', '2026-03-09', '2026-03-07', 'Onboarding', 'Probationary', 1, '2026-03-08 12:37:05', '2026-03-10 17:17:03', 'Pending', 'admin', 21, 'male', 'enrolled', 'https://plxoonwsguadkqisevxh.supabase.co/storage/v1/object/public/resumes/1772885794998-q8o2eatgl2.png', NULL, NULL, NULL, NULL),
+(98, 67, 'EMP-067', 'Sakuke', 'Bossing.Do1s@gmail.com', '09565819961', 'frontdesk', 60.00, 'Hotel', '2026-03-11', '2026-03-09', 'Onboarding', 'Probationary', 2, '2026-03-10 00:52:15', '2026-03-10 21:12:30', 'Pending', 'employee', 23, 'male', 'Not Enrolled', '', NULL, NULL, NULL, NULL),
+(99, 68, 'EMP-068', 'Uzumaki', 'uzumakiss.Do1s@gmail.com', '09565819961', 'frontdesk', 0.00, 'Hotel', '2026-03-11', '2026-03-10', 'Onboarding', 'Probationary', 1, '2026-03-10 19:44:34', '2026-03-10 19:44:34', 'Pending', 'employee', 23, 'female', 'Not Enrolled', '', NULL, NULL, NULL, NULL),
+(100, 66, 'EMP-066', 'sakura', 'ad1@gmail.com', '09123456789', 'Restaurant Server', 600.00, 'Finance', '2026-03-11', '2026-03-10', 'Onboarding', 'Probationary', 1, '2026-03-10 20:06:00', '2026-03-10 20:06:00', 'Pending', 'employee', 34, 'female', 'Not Enrolled', '', NULL, NULL, NULL, NULL),
+(101, 69, 'EMP-069', 'Sai', 'Sai@gmail.com', '09565819961', 'frontdesk', 400.00, 'Hotel', '2026-03-11', '2026-03-10', 'In Progress', 'Probationary', 1, '2026-03-10 20:07:20', '2026-03-10 21:12:47', 'Pending', 'evaluator', 23, 'female', 'Not Enrolled', '', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -315,9 +340,8 @@ CREATE TABLE `employee_accounts` (
 --
 
 INSERT INTO `employee_accounts` (`id`, `applicant_id`, `employee_id`, `username`, `password`, `email`, `account_status`, `generated_date`, `last_login`, `department`, `session_token`) VALUES
-(37, 56, 'EMP-056', 'B0s5ls.Do1s', '$2y$10$/XwXWVPHji8aBSHuOAKLPeO2eEVsGh7to9gFrd59gyOyX5y3yhl8.', 'B0s5ls.Do1s@gmail.com', 'Active', '2026-03-04 07:38:03', '2026-03-07 06:20:04', 'Finance', '55259ea2d92e1342afbecb28bd33e70fcc9c87a816dd9dc5f8099fa57b64a805'),
-(40, 57, 'EMP-057', 'B0s5ls.sDo1s', '$2y$10$dzrTjttLuXqboeAijQ1MjezgFLw6ES0eR97vtrnJwqQ0mTUuo3rHW', 'B0s5ls.sDo1s@gmail.com', 'Active', '2026-03-06 01:11:08', '2026-03-06 03:13:49', 'Finance', '4b2535022c5005fa1f17016c1ecfddf5ec68e8f8e9a85e7d83c3bf83231f891a'),
-(41, 58, 'EMP-058', 'B0s5ls.Dl1s', '$2y$10$y4OK7yjlDvKabZzuRL24mOBVIPaxtfj/BWfavgLuQfZ.UnHwgI8Xa', 'B0s5ls.Dl1s@gmail.com', 'Active', '2026-03-06 03:01:54', NULL, 'Finance', NULL);
+(46, 60, 'EMP-060', 'janzeldols', '$2y$10$iMquynkzV/CTf9mhSiv0meCxxmZIQZiC0ijBs3E21xeyBTS7nl7PW', 'janzeldols@gmail.com', 'Active', '2026-03-08 04:41:27', '2026-03-10 13:09:41', 'Finance', 'b14266e734c2044251a493ed30913bcd2f6105c0b72cc44c260b0a38d88a6ed3'),
+(54, 66, 'EMP-066', 'ad1', '$2y$10$c4ogHY73gf3HYebpSrqMMe9/D/QjxAgJsNNldYkBfME/LP8USiNcC', 'ad1@gmail.com', 'Active', '2026-03-11 07:34:14', '2026-03-10 10:24:55', 'Finance', '92fd87ec2bc7e2d9882d2aa3dba1c7e3ab310651f3cc889d3c0bc9e7c8cd6aaa');
 
 -- --------------------------------------------------------
 
@@ -344,7 +368,7 @@ CREATE TABLE `employee_benefits` (
 --
 
 INSERT INTO `employee_benefits` (`id`, `employee_id`, `benefit_type`, `provider_id`, `effective_date`, `expiry_date`, `coverage_amount`, `monthly_premium`, `dependents`, `created_at`, `updated_at`) VALUES
-(13, 62, 'HMO - Principal', 3, '2026-03-28', '2026-03-28', 123456.00, 1234.00, NULL, '2026-03-05 12:38:16', '2026-03-05 12:38:16');
+(15, 82, 'HMO - Principal + 1 Dependent', 4, '2026-03-08', '2026-03-09', 12.00, 31.00, 'fs', '2026-03-08 13:30:04', '2026-03-08 13:30:04');
 
 -- --------------------------------------------------------
 
@@ -361,6 +385,15 @@ CREATE TABLE `employee_recognitions` (
   `recognition_date` date DEFAULT curdate(),
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `employee_recognitions`
+--
+
+INSERT INTO `employee_recognitions` (`id`, `employee_id`, `recognition_type`, `performance_highlight`, `recognized_by`, `recognition_date`, `created_at`) VALUES
+(4, 77, 'Rising Star', 'try101', NULL, '2026-03-07', '2026-03-07 12:21:50'),
+(5, 81, 'Employee of the Month', 'f', 81, '2026-03-08', '2026-03-08 05:27:54'),
+(6, 95, 'Rising Star', 'x', 95, '2026-06-09', '2026-06-09 09:04:13');
 
 -- --------------------------------------------------------
 
@@ -382,6 +415,14 @@ CREATE TABLE `employee_schedules` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `employee_schedules`
+--
+
+INSERT INTO `employee_schedules` (`id`, `employee_id`, `shift_id`, `schedule_date`, `time_in`, `time_out`, `shift_code`, `department`, `status`, `created_at`, `updated_at`) VALUES
+(35, 82, 2, '2026-03-09', '09:00:00', '18:00:00', NULL, 'Logistic', 'scheduled', '2026-03-08 05:14:54', '2026-03-08 07:40:51'),
+(37, 82, 1, '2026-03-06', '06:00:00', '14:00:00', NULL, 'Logistic', 'scheduled', '2026-03-08 07:55:39', '2026-03-08 07:55:39');
+
 -- --------------------------------------------------------
 
 --
@@ -398,7 +439,7 @@ CREATE TABLE `expense_claims` (
   `project` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `receipt_path` varchar(255) NOT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'Pending',
+  `status` enum('Pending','Approved','Rejected','Cancelled','Paid') NOT NULL DEFAULT 'Pending',
   `approved_by` int(11) DEFAULT NULL,
   `approved_at` datetime DEFAULT NULL,
   `rejection_reason` text DEFAULT NULL,
@@ -406,12 +447,41 @@ CREATE TABLE `expense_claims` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `expense_claims`
+-- Table structure for table `intervention_assignments`
 --
 
-INSERT INTO `expense_claims` (`id`, `employee_id`, `expense_date`, `category`, `merchant`, `amount`, `project`, `description`, `receipt_path`, `status`, `approved_by`, `approved_at`, `rejection_reason`, `created_at`, `updated_at`) VALUES
-(6, 62, '2026-03-07', 'Transportation', 'd', 123.00, NULL, '3', '', 'Pending', NULL, NULL, NULL, '2026-03-06 01:16:51', '2026-03-06 01:16:51');
+CREATE TABLE `intervention_assignments` (
+  `id` int(11) NOT NULL,
+  `employee_id` int(11) NOT NULL,
+  `employee_name` varchar(255) NOT NULL,
+  `competency_name` varchar(150) NOT NULL,
+  `current_level` tinyint(4) NOT NULL,
+  `required_level` tinyint(4) NOT NULL,
+  `intervention_title` varchar(255) NOT NULL,
+  `intervention_type` varchar(100) NOT NULL,
+  `duration` varchar(50) DEFAULT NULL,
+  `badge_text` varchar(50) DEFAULT NULL,
+  `assigned_date` date NOT NULL,
+  `due_date` date DEFAULT NULL,
+  `status` enum('pending','in_progress','completed','cancelled') DEFAULT 'pending',
+  `completion_date` date DEFAULT NULL,
+  `new_level` tinyint(4) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `notes` text DEFAULT NULL,
+  `competency_assessment_id` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `intervention_assignments`
+--
+
+INSERT INTO `intervention_assignments` (`id`, `employee_id`, `employee_name`, `competency_name`, `current_level`, `required_level`, `intervention_title`, `intervention_type`, `duration`, `badge_text`, `assigned_date`, `due_date`, `status`, `completion_date`, `new_level`, `created_at`, `updated_at`, `notes`, `competency_assessment_id`) VALUES
+(24, 98, 'Sakuke', 'Food Safety', 2, 3, 'Food Safety Excellence Training', 'Online course', '4 hours', 'Recommended', '2026-03-10', '2026-04-09', 'completed', '2026-03-10', 4, '2026-03-10 13:30:54', '2026-03-10 13:56:21', 'Assigned based on competency gap assessment #20', 20),
+(25, 98, 'Sakuke', 'Food Safety', 2, 3, 'One-on-One Mentoring Program', 'Mentoring', '3 months', 'Intensive', '2026-03-10', '2026-04-09', 'completed', '2026-03-10', 2, '2026-03-10 13:55:45', '2026-03-10 13:56:25', 'Assigned based on competency gap assessment #20', 20);
 
 -- --------------------------------------------------------
 
@@ -425,7 +495,7 @@ CREATE TABLE `job_postings` (
   `department` varchar(100) NOT NULL,
   `location` varchar(150) NOT NULL,
   `shift` varchar(50) NOT NULL,
-  `salary` varchar(100) NOT NULL,
+  `salary` decimal(10,2) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -435,8 +505,27 @@ CREATE TABLE `job_postings` (
 --
 
 INSERT INTO `job_postings` (`id`, `position`, `department`, `location`, `shift`, `salary`, `created_at`, `updated_at`) VALUES
-(57, 'Restaurant Serversfafasfasf', 'Management', 'Main Dining Room', 'evening', '$15-20/hr + tips', '2026-03-03 02:42:01', '2026-03-03 02:42:01'),
-(58, 'Restaurant Serversf', 'Finance', 'Main Dining Room', 'evening', '₱15-20/hr + tips', '2026-03-03 08:49:13', '2026-03-03 08:49:13');
+(62, 'frontdesk', 'Hotel', 'Main Dining Room', '1', 400.00, '2026-03-09 16:24:16', '2026-03-09 16:24:16');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `job_requisitions`
+--
+
+CREATE TABLE `job_requisitions` (
+  `id` int(11) NOT NULL,
+  `job_title` varchar(150) NOT NULL,
+  `department` varchar(100) NOT NULL,
+  `requested_by` varchar(150) NOT NULL,
+  `positions` int(11) NOT NULL,
+  `needed_by` date NOT NULL,
+  `priority` enum('high','medium','low') DEFAULT 'medium',
+  `status` enum('pending','approved','declined') DEFAULT 'pending',
+  `justification` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -458,13 +547,6 @@ CREATE TABLE `leave_requests` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `leave_requests`
---
-
-INSERT INTO `leave_requests` (`id`, `employee_id`, `leave_type`, `start_date`, `end_date`, `total_days`, `reason`, `status`, `approved_by`, `approved_at`, `created_at`, `updated_at`) VALUES
-(16, 62, 'Annual Leave', '2026-03-09', '2026-03-10', 2, '', 'Approved', NULL, '2026-03-09 22:09:41', '2026-03-09 14:09:35', '2026-03-09 14:09:41');
 
 -- --------------------------------------------------------
 
@@ -507,15 +589,6 @@ CREATE TABLE `mentor_ratings` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `mentor_ratings`
---
-
-INSERT INTO `mentor_ratings` (`id`, `mentee_employee_id`, `mentor_employee_id`, `rating`, `comment`, `rating_date`, `created_at`) VALUES
-(1, 63, 62, 5, 'nice effort', '2026-03-10', '2026-03-09 16:28:09'),
-(2, 63, 62, 1, 'h', '2026-03-10', '2026-03-09 16:46:09'),
-(3, 63, 62, 1, 'd', '2026-03-10', '2026-03-09 16:51:22');
-
 -- --------------------------------------------------------
 
 --
@@ -533,8 +606,17 @@ CREATE TABLE `payroll_summary` (
   `gross_pay` decimal(12,2) DEFAULT 0.00,
   `total_deductions` decimal(12,2) DEFAULT 0.00,
   `net_pay` decimal(12,2) DEFAULT 0.00,
-  `generated_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `generated_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `claims` decimal(10,2) DEFAULT 0.00,
+  `status` varchar(50) DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `payroll_summary`
+--
+
+INSERT INTO `payroll_summary` (`id`, `employee_id`, `period_start`, `period_end`, `total_regular_hours`, `total_overtime_hours`, `hourly_rate`, `gross_pay`, `total_deductions`, `net_pay`, `generated_at`, `claims`, `status`) VALUES
+(35, 82, '2026-03-06', '2026-03-20', 64.00, 0.00, 134.00, 8576.00, 600.00, 7976.00, '2026-03-10 10:28:07', 0.00, 'Processed');
 
 -- --------------------------------------------------------
 
@@ -551,17 +633,6 @@ CREATE TABLE `performance_criteria_scores` (
   `score` tinyint(1) NOT NULL,
   `comments` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `performance_criteria_scores`
---
-
-INSERT INTO `performance_criteria_scores` (`id`, `evaluation_id`, `criteria_number`, `criteria_label`, `criteria_description`, `score`, `comments`) VALUES
-(236, 48, 1, 'Job Knowledge', 'Understanding of role and standards', 3, ''),
-(237, 48, 2, 'Quality of Work', 'Accuracy and attention to detail', 3, ''),
-(238, 48, 3, 'Customer Service', 'Customer interaction quality', 5, ''),
-(239, 48, 4, 'Teamwork & Collaboration', 'Team cooperation', 4, ''),
-(240, 48, 5, 'Attendance & Punctuality', 'Reliability and punctuality', 4, '');
 
 -- --------------------------------------------------------
 
@@ -580,13 +651,6 @@ CREATE TABLE `performance_evaluations` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `performance_evaluations`
---
-
-INSERT INTO `performance_evaluations` (`id`, `employee_id`, `review_period_start`, `review_period_end`, `review_type`, `overall_score`, `interpretation`, `created_at`, `updated_at`) VALUES
-(48, 63, '2026-03-07', '2026-06-04', '90-Day Probationary Review', 3.8, 'Exceeds Expectations', '2026-03-06 03:02:38', '2026-03-09 17:27:20');
 
 -- --------------------------------------------------------
 
@@ -622,6 +686,34 @@ CREATE TABLE `regular_employment` (
   `manager_comments` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `schedule_contract`
+--
+
+CREATE TABLE `schedule_contract` (
+  `id` int(11) NOT NULL,
+  `applicant_id` int(10) UNSIGNED NOT NULL,
+  `employee_name` varchar(150) NOT NULL,
+  `position` varchar(100) NOT NULL,
+  `contract_date` date NOT NULL,
+  `contract_time` time DEFAULT NULL,
+  `contract_location` varchar(150) DEFAULT NULL,
+  `contract_notes` text DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `hourly_rate` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `status` enum('Pending','Ended') NOT NULL DEFAULT 'Pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `schedule_contract`
+--
+
+INSERT INTO `schedule_contract` (`id`, `applicant_id`, `employee_name`, `position`, `contract_date`, `contract_time`, `contract_location`, `contract_notes`, `updated_at`, `created_at`, `hourly_rate`, `status`) VALUES
+(16, 66, 'sakura', 'Restaurant Server', '2026-03-10', '10:00:00', 'HR Office', '', NULL, '2026-03-10 18:42:19', 300.00, 'Ended');
 
 -- --------------------------------------------------------
 
@@ -675,7 +767,9 @@ CREATE TABLE `shift_swap_requests` (
 --
 
 INSERT INTO `shift_swap_requests` (`id`, `requester_employee_id`, `swap_with_employee_id`, `swap_date`, `requester_shift_id`, `swap_with_shift_id`, `reason`, `status`, `approved_by`, `approved_at`, `created_at`, `updated_at`) VALUES
-(6, 62, 63, '2026-03-10', 1, 2, 'hi', 'Approved', NULL, '2026-03-08 21:49:15', '2026-03-08 13:49:09', '2026-03-08 13:49:15');
+(6, 62, 63, '2026-03-10', 1, 2, 'hi', 'Approved', NULL, '2026-03-08 21:49:15', '2026-03-08 13:49:09', '2026-03-08 13:49:15'),
+(7, 79, 77, '2026-03-09', 1, 1, 'dfsd', 'Approved', 79, '2026-03-08 12:34:19', '2026-03-08 04:34:06', '2026-03-08 04:34:19'),
+(8, 81, 82, '2026-03-09', 3, 1, 'pls', 'Approved', 81, '2026-03-08 12:42:24', '2026-03-08 04:42:17', '2026-03-08 04:42:24');
 
 -- --------------------------------------------------------
 
@@ -695,7 +789,7 @@ CREATE TABLE `statutory_deductions` (
 --
 
 INSERT INTO `statutory_deductions` (`id`, `deduction_name`, `deduction_amount`, `created_at`) VALUES
-(1, 'SSS', 450.00, '2026-03-05 12:52:31'),
+(1, 'SSS', 250.00, '2026-03-05 12:52:31'),
 (2, 'PhilHealth', 250.00, '2026-03-05 12:52:31'),
 (3, 'PagIBIG', 100.00, '2026-03-05 12:52:31');
 
@@ -723,7 +817,7 @@ CREATE TABLE `tasks` (
 --
 
 INSERT INTO `tasks` (`id`, `assigned_to`, `task_type`, `task_description`, `due_date`, `priority`, `assigned_staff`, `status`, `created_at`, `updated_at`) VALUES
-(41, 62, 'paperwork', 'dasd', '2026-03-07', 'high', 'Lisa Martinez', 'Completed', '2026-03-06 03:05:58', '2026-03-06 03:07:03');
+(46, 101, 'paperwork', 'we', '2026-03-11', 'medium', '', 'Not Started', '2026-03-10 12:07:59', '2026-03-10 12:07:59');
 
 -- --------------------------------------------------------
 
@@ -779,7 +873,28 @@ CREATE TABLE `training_schedule` (
 --
 
 INSERT INTO `training_schedule` (`id`, `title`, `training_type`, `competency_id`, `start_date`, `end_date`, `start_time`, `end_time`, `venue`, `employee_id`, `status`, `created_at`, `updated_at`, `provider_id`, `assessment_status`) VALUES
-(17, '', 'internal', 1, '2026-03-06', '2026-03-07', '11:06:00', '11:07:00', 'dfd', 63, 'Completed', '2026-03-06 03:07:46', '2026-03-06 03:09:22', NULL, 'failed');
+(24, '', 'internal', 1, '2026-03-11', '2026-03-12', '13:15:00', '13:15:00', 'xd', 98, 'Scheduled', '2026-03-10 05:15:27', '2026-03-10 05:15:59', NULL, 'failed'),
+(25, '', 'internal', 3, '2026-03-10', '2026-03-11', '13:53:00', '13:53:00', 'sd', 98, 'Scheduled', '2026-03-10 05:53:47', '2026-03-10 05:54:59', NULL, 'completed'),
+(26, '', 'internal', 2, '2026-03-11', '2026-03-11', '21:12:00', '21:14:00', 'sd', 98, 'Scheduled', '2026-03-10 13:11:35', '2026-03-10 13:13:06', NULL, 'failed');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `upload_sessions`
+--
+
+CREATE TABLE `upload_sessions` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `filename` varchar(255) NOT NULL,
+  `file_size` int(11) DEFAULT NULL,
+  `total_records` int(11) DEFAULT 0,
+  `processed_records` int(11) DEFAULT 0,
+  `warnings` text DEFAULT NULL,
+  `errors` text DEFAULT NULL,
+  `unmatched_employees` text DEFAULT NULL,
+  `uploaded_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -818,6 +933,13 @@ ALTER TABLE `attendance_summary`
   ADD UNIQUE KEY `employee_period` (`employee_id`,`period_start`,`period_end`),
   ADD KEY `employee_id` (`employee_id`),
   ADD KEY `period_dates` (`period_start`,`period_end`);
+
+--
+-- Indexes for table `attendance_uploads`
+--
+ALTER TABLE `attendance_uploads`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `uploaded_by` (`uploaded_by`);
 
 --
 -- Indexes for table `benefit_providers`
@@ -906,11 +1028,25 @@ ALTER TABLE `expense_claims`
   ADD KEY `fk_claim_approver` (`approved_by`);
 
 --
+-- Indexes for table `intervention_assignments`
+--
+ALTER TABLE `intervention_assignments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `employee_id` (`employee_id`),
+  ADD KEY `fk_intervention_competency` (`competency_assessment_id`);
+
+--
 -- Indexes for table `job_postings`
 --
 ALTER TABLE `job_postings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_job_posting` (`position`,`department`,`location`,`shift`,`salary`);
+
+--
+-- Indexes for table `job_requisitions`
+--
+ALTER TABLE `job_requisitions`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `leave_requests`
@@ -930,8 +1066,8 @@ ALTER TABLE `mentor_assignments`
 --
 ALTER TABLE `mentor_ratings`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_rating_mentee` (`mentee_employee_id`),
-  ADD KEY `fk_rating_mentor` (`mentor_employee_id`);
+  ADD KEY `fk_rating_mentor` (`mentor_employee_id`),
+  ADD KEY `fk_rating_mentee` (`mentee_employee_id`);
 
 --
 -- Indexes for table `payroll_summary`
@@ -969,6 +1105,13 @@ ALTER TABLE `regular_employment`
   ADD PRIMARY KEY (`id`),
   ADD KEY `employee_id` (`employee_id`),
   ADD KEY `evaluation_id` (`evaluation_id`);
+
+--
+-- Indexes for table `schedule_contract`
+--
+ALTER TABLE `schedule_contract`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `applicant_id` (`applicant_id`);
 
 --
 -- Indexes for table `shifts`
@@ -1012,6 +1155,13 @@ ALTER TABLE `training_schedule`
   ADD KEY `fk_provider` (`provider_id`);
 
 --
+-- Indexes for table `upload_sessions`
+--
+ALTER TABLE `upload_sessions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `uploaded_by` (`uploaded_by`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -1019,25 +1169,31 @@ ALTER TABLE `training_schedule`
 -- AUTO_INCREMENT for table `admin_notes`
 --
 ALTER TABLE `admin_notes`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `applicants`
 --
 ALTER TABLE `applicants`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
 
 --
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=134;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=210;
 
 --
 -- AUTO_INCREMENT for table `attendance_summary`
 --
 ALTER TABLE `attendance_summary`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+
+--
+-- AUTO_INCREMENT for table `attendance_uploads`
+--
+ALTER TABLE `attendance_uploads`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `benefit_providers`
@@ -1049,7 +1205,7 @@ ALTER TABLE `benefit_providers`
 -- AUTO_INCREMENT for table `compensation_reviews`
 --
 ALTER TABLE `compensation_reviews`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `competencies`
@@ -1061,55 +1217,67 @@ ALTER TABLE `competencies`
 -- AUTO_INCREMENT for table `competency_assessments`
 --
 ALTER TABLE `competency_assessments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
 
 --
 -- AUTO_INCREMENT for table `employee_accounts`
 --
 ALTER TABLE `employee_accounts`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `employee_benefits`
 --
 ALTER TABLE `employee_benefits`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `employee_recognitions`
 --
 ALTER TABLE `employee_recognitions`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `employee_schedules`
 --
 ALTER TABLE `employee_schedules`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `expense_claims`
 --
 ALTER TABLE `expense_claims`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `intervention_assignments`
+--
+ALTER TABLE `intervention_assignments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `job_postings`
 --
 ALTER TABLE `job_postings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+
+--
+-- AUTO_INCREMENT for table `job_requisitions`
+--
+ALTER TABLE `job_requisitions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `leave_requests`
 --
 ALTER TABLE `leave_requests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `mentor_assignments`
@@ -1127,19 +1295,19 @@ ALTER TABLE `mentor_ratings`
 -- AUTO_INCREMENT for table `payroll_summary`
 --
 ALTER TABLE `payroll_summary`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `performance_criteria_scores`
 --
 ALTER TABLE `performance_criteria_scores`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=241;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=251;
 
 --
 -- AUTO_INCREMENT for table `performance_evaluations`
 --
 ALTER TABLE `performance_evaluations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `performance_improvement_plans`
@@ -1154,6 +1322,12 @@ ALTER TABLE `regular_employment`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
+-- AUTO_INCREMENT for table `schedule_contract`
+--
+ALTER TABLE `schedule_contract`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
 -- AUTO_INCREMENT for table `shifts`
 --
 ALTER TABLE `shifts`
@@ -1163,7 +1337,7 @@ ALTER TABLE `shifts`
 -- AUTO_INCREMENT for table `shift_swap_requests`
 --
 ALTER TABLE `shift_swap_requests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `statutory_deductions`
@@ -1175,7 +1349,7 @@ ALTER TABLE `statutory_deductions`
 -- AUTO_INCREMENT for table `tasks`
 --
 ALTER TABLE `tasks`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT for table `training_providers`
@@ -1187,7 +1361,13 @@ ALTER TABLE `training_providers`
 -- AUTO_INCREMENT for table `training_schedule`
 --
 ALTER TABLE `training_schedule`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+
+--
+-- AUTO_INCREMENT for table `upload_sessions`
+--
+ALTER TABLE `upload_sessions`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -1205,6 +1385,12 @@ ALTER TABLE `admin_notes`
 ALTER TABLE `attendance`
   ADD CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `attendance_shift_fk` FOREIGN KEY (`shift_id`) REFERENCES `shifts` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `attendance_uploads`
+--
+ALTER TABLE `attendance_uploads`
+  ADD CONSTRAINT `attendance_uploads_ibfk_1` FOREIGN KEY (`uploaded_by`) REFERENCES `employees` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `compensation_reviews`
@@ -1255,6 +1441,12 @@ ALTER TABLE `expense_claims`
   ADD CONSTRAINT `fk_claim_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `intervention_assignments`
+--
+ALTER TABLE `intervention_assignments`
+  ADD CONSTRAINT `fk_intervention_competency` FOREIGN KEY (`competency_assessment_id`) REFERENCES `competency_assessments` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `leave_requests`
 --
 ALTER TABLE `leave_requests`
@@ -1264,7 +1456,7 @@ ALTER TABLE `leave_requests`
 -- Constraints for table `mentor_ratings`
 --
 ALTER TABLE `mentor_ratings`
-  ADD CONSTRAINT `fk_rating_mentee` FOREIGN KEY (`mentee_employee_id`) REFERENCES `employees` (`id`),
+  ADD CONSTRAINT `fk_rating_mentee` FOREIGN KEY (`mentee_employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_rating_mentor` FOREIGN KEY (`mentor_employee_id`) REFERENCES `employees` (`id`);
 
 --
@@ -1300,6 +1492,12 @@ ALTER TABLE `regular_employment`
   ADD CONSTRAINT `regular_employment_ibfk_2` FOREIGN KEY (`evaluation_id`) REFERENCES `performance_evaluations` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `schedule_contract`
+--
+ALTER TABLE `schedule_contract`
+  ADD CONSTRAINT `schedule_contract_ibfk_1` FOREIGN KEY (`applicant_id`) REFERENCES `applicants` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `tasks`
 --
 ALTER TABLE `tasks`
@@ -1312,6 +1510,12 @@ ALTER TABLE `training_schedule`
   ADD CONSTRAINT `fk_competency` FOREIGN KEY (`competency_id`) REFERENCES `competencies` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_provider` FOREIGN KEY (`provider_id`) REFERENCES `training_providers` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `upload_sessions`
+--
+ALTER TABLE `upload_sessions`
+  ADD CONSTRAINT `upload_sessions_ibfk_1` FOREIGN KEY (`uploaded_by`) REFERENCES `employees` (`id`) ON DELETE SET NULL;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

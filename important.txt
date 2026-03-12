@@ -1,5 +1,6 @@
-compensation must approve by finance, after approved the pay per hour must update, and notify the employee
-
-claims must approved by finance and get the 
-
+get compensation and must approve by finance, after approved the pay per hour must update using the proposed_hourly_rate column in compensatin review, and notify the employee
+can insert, update, delete in job_requisition,
+can get all the details in employees base on department
+can get all the applicants base on department,
+claims must approved by finance 
 payroll needs to process by hr, and finance will approved them or said paid or processed.

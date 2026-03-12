@@ -1555,6 +1555,96 @@ function noteTimeAgo($datetime)
     }
 }
 
+// ============================================
+// PAYSLIP DATA SECTION
+// ============================================
+
+// Get payslips for the employee - SIMPLIFIED VERSION
+// Get payslips for the employee
+$payslips = $db->query("
+    SELECT 
+        ps.id,
+        ps.employee_id,
+        ps.period_start,
+        ps.period_end,
+        ps.total_regular_hours,
+        ps.total_overtime_hours,
+        ps.hourly_rate,
+        ps.gross_pay,
+        ps.total_deductions,
+        ps.net_pay,
+        ps.claims,
+        ps.status,
+        DATE_FORMAT(ps.period_start, '%M %Y') as month_year,
+        e.full_name 
+    FROM payroll_summary ps
+    JOIN employees e ON ps.employee_id = e.id 
+    WHERE ps.employee_id = ?
+    ORDER BY ps.period_start DESC
+", [$employeeId])->find();
+
+if (!$payslips) {
+    $payslips = [];
+}
+
+// Get latest payslip for summary
+$latestPayslip = $db->query("
+    SELECT 
+        period_end,
+        gross_pay,
+        net_pay,
+        status
+    FROM payroll_summary 
+    WHERE employee_id = ?
+    ORDER BY period_end DESC
+    LIMIT 1
+", [$employeeId])->fetch_one();
+
+if (!$latestPayslip) {
+    $latestPayslip = [
+        'period_end' => null,
+        'gross_pay' => 0,
+        'net_pay' => 0,
+        'status' => 'No Data'
+    ];
+}
+
+// Calculate YTD earnings (Year to Date)
+$ytdEarnings = $db->query("
+    SELECT 
+        COALESCE(SUM(gross_pay), 0) as total_gross,
+        COALESCE(SUM(net_pay), 0) as total_net,
+        COALESCE(SUM(total_regular_hours), 0) as total_hours,
+        COUNT(*) as pay_periods
+    FROM payroll_summary 
+    WHERE employee_id = ? 
+    AND YEAR(period_end) = YEAR(CURDATE())
+", [$employeeId])->fetch_one();
+
+if (!$ytdEarnings) {
+    $ytdEarnings = [
+        'total_gross' => 0,
+        'total_net' => 0,
+        'total_hours' => 0,
+        'pay_periods' => 0
+    ];
+}
+
+// Get upcoming pay period
+$today = date('Y-m-d');
+$currentDay = (int) date('j');
+
+if ($currentDay <= 5) {
+    $nextPayDate = date('Y-m-10'); // 10th of current month
+    $nextPayPeriod = '2nd half of previous month';
+} elseif ($currentDay <= 20) {
+    $nextPayDate = date('Y-m-25'); // 25th of current month
+    $nextPayPeriod = '1st half of current month';
+} else {
+    $nextPayDate = date('Y-m-10', strtotime('first day of next month')); // 10th of next month
+    $nextPayPeriod = '2nd half of current month';
+}
+
 // Add all variables to view
 view_path('ess', 'index', [
     'tasks' => $limitedTasks,
@@ -1661,4 +1751,11 @@ view_path('ess', 'index', [
     'noteTotalNotes' => $noteTotalNotes,
     'noteNewCount' => $noteNewCount,
     'noteActivities' => $noteActivities,
+
+    //payslip
+    'payslips' => $payslips,
+    'latestPayslip' => $latestPayslip,
+    'ytdEarnings' => $ytdEarnings,
+    'nextPayDate' => $nextPayDate,
+    'nextPayPeriod' => $nextPayPeriod,
 ]);

@@ -11,19 +11,24 @@ TASK: left behind
 10. add logic on how hr account will add(done)
 11. add functionality to the hr login(done)
 12. add shift (done)
-13. add hourly rate, and the shift in applicant
 14. fix the x btn in Onboarding Progress (done)
+24. payroll review, process (done), hourly rate(done)
 22. update in viewEmployeeDetails - already have contoller (updateEmployeeInfo) (done)
+21. compensation review note btn (done)
 
 15. add status in every controller(see in leaveDelete.php) - http_response_code(403);
 16. add error_logs table in db
 17. update controllers to add error logs
+Change Password
 
-18. view and approve in timesheet
-20. notify and view gap in competency
-21. compensation review note btn
-23. add shift and hourly rate
-24. payroll review, process 
+18. view (done) and approvein timesheet (done)
+23. add shift(done)
+
+20. notify (done) and view gap in competency (done)
+2. claims and reimbursemetn approve btm (done)
+3. responsiveness in ess (done)
+4. Change Password (done)
+5. payroll ess (done)
 
 TASK: EACH DAY MUST DO FUNCTIONS FOR EACH SECTION
 day1

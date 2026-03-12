@@ -24,12 +24,10 @@
             <!-- Sidebar Navigation -->
             <aside id="sidebar"
                 class="w-64 bg-white border-r border-gray-200 flex flex-col fixed h-full sidebar-mobile lg:translate-x-0 sidebar-transition">
-                <!-- Sidebar Header with Close Button for Mobile -->
-                <div class="p-5 border-b border-gray-100 flex items-center justify-between">
-                    <h1 class="text-lg font-bold text-gray-800">ESS Portal</h1>
-                    <button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-gray-600">
-                        <i class="fa-solid fa-xmark fa-xl"></i>
-                    </button>
+                <!-- Mobile Header with Hamburger - USE THIS EXACT HTML -->
+                <div
+                    class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-30">
+                    <h1 class="text-lg font-semibold text-gray-800">ESS Portal</h1>
                 </div>
 
                 <!-- User Info Card -->
@@ -130,7 +128,7 @@
                             class="sidebar-nav-link flex items-center gap-3 px-4 py-3 text-sm rounded-lg transition-colors <?= $currentTab == 'announcements' ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-50' ?>">
                             <i
                                 class="fa-solid fa-bullhorn w-5 <?= $currentTab == 'announcements' ? 'text-gray-900' : 'text-gray-400' ?>"></i>
-                            <span>Announcements</span>
+                            <span>Notes & Recognition</span>
                         </a>
 
 
@@ -311,17 +309,17 @@
                                     </div>
 
                                     <div class="flex items-center gap-2">
-                                        <button id="openProfileModalBtn" onclick="openModal('profileModal')"
-                                            class="text-primary text-sm font-medium bg-[#e7edf5] px-4 py-2 rounded-md hover:bg-[#d9e2ed] transition w-full sm:w-auto">
+                                        <a href="/?tab=profile"
+                                            class="text-primary text-center text-sm font-medium bg-[#e7edf5] px-4 py-2 rounded-md hover:bg-[#d9e2ed] transition w-full sm:w-auto">
                                             <i class="fa-solid fa-eye mr-1"></i>view profile
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
 
                                 <!-- Stats Cards -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <!-- Requests Stats Card -->
-                                    <div class="stat-card bg-white border border-gray-200 rounded-md p-5 shadow-sm">
+                                    <div class=" bg-white border border-gray-200 rounded-md p-5 shadow-sm">
                                         <div class="flex items-center justify-between">
                                             <span class="text-gray-500 text-sm">Leave requests</span>
                                             <span class="bg-[#f5efe2] text-[#996e2e] p-1.5 rounded-md">
@@ -866,7 +864,7 @@
                 elapsedSeconds: <?= $elapsedSeconds ?>,
                 csrfToken: '<?= $_SESSION['csrf_token'] ?>',
                 <?php if ($currentAttendance && isset($currentAttendance['clock_in'])): ?>
-                                                shiftStartTime: '<?= $currentAttendance['clock_in'] ?>'
+                                                                                                                                shiftStartTime: '<?= $currentAttendance['clock_in'] ?>'
                 <?php endif; ?>
             };
         </script>
